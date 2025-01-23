@@ -9,14 +9,27 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.17.6",
+    "@expo/metro-runtime": "~4.0.1",
+    "@lexical/react": "^0.23.1",
     "expo": "~52.0.27",
+    "expo-font": "^13.0.3",
+    "expo-splash-screen": "^0.29.21",
     "expo-status-bar": "~2.0.1",
+    "lexical": "^0.23.1",
+    "lucide-react": "^0.473.0",
+    "lucide-react-native": "^0.473.0",
     "react": "18.3.1",
-    "react-native": "0.76.6"
+    "react-dom": "18.3.1",
+    "react-native": "0.76.6",
+    "react-native-svg": "^15.11.1",
+    "react-native-web": "~0.19.13",
+    "react-native-webview": "^13.13.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "@types/react-dom": "^18.3.5",
     "typescript": "^5.3.3"
   },
   "private": true
