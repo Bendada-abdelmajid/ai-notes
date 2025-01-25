@@ -11,3 +11,7 @@ export default function joinClasses(
   return args.filter(Boolean).join(' ');
 }
 
+
+export function formatNumber(num: number): string {
+  return num < 10 ? `0${num}` : `${num}`;
+}

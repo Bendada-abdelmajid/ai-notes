@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { LogBox, StyleSheet, Text, View } from 'react-native';
 import Editor from './components/editor';
+import Home from './components/home';
 
 SplashScreen.preventAutoHideAsync();
 export default function App() {
@@ -28,7 +29,8 @@ export default function App() {
     <View style={styles.container}>
    
       <StatusBar style="auto" />
-      <Editor/>
+      {/* <Editor/> */}
+      <Home/>
     </View>
   );
 }
