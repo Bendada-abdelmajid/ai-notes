@@ -5,10 +5,12 @@ import { useEffect } from 'react';
 import { LogBox, StyleSheet, Text, View } from 'react-native';
 import Editor from './components/editor';
 import Home from './components/home';
+import { colors } from './constante/colors';
+import { AppProvider } from './lib/appContext';
 
 SplashScreen.preventAutoHideAsync();
 export default function App() {
-  LogBox.ignoreAllLogs()
+  // LogBox.ignoreAllLogs()
   const [loaded, error] = useFonts({
     'Roboto-ExtraBold': require('./assets/fonts/Roboto-ExtraBold.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
@@ -26,18 +28,19 @@ export default function App() {
     return null;
   }
   return (
-    <View style={styles.container}>
-   
-      <StatusBar style="auto" />
-      {/* <Editor/> */}
-      <Home/>
-    </View>
+    <AppProvider>
+      <View style={styles.container}>
+        <Home />
+        <Editor />
+     
+      </View>
+    </AppProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.black,
   },
 });

@@ -52,12 +52,14 @@ type Props = {
   setBaseColor: React.Dispatch<React.SetStateAction<string>>;
   setPlainText: React.Dispatch<React.SetStateAction<string>>;
   setEditorState: React.Dispatch<React.SetStateAction<string | null>>;
+   setOpen :React.Dispatch<React.SetStateAction<boolean>>;
 }
 export default function TextEditor({
   baseColor,
   setBaseColor,
   setPlainText,
   setEditorState,
+  setOpen
 }: Props) {
   const disableContextMenu = (event: { preventDefault: () => void; }) => {
     event.preventDefault(); // Prevents the default context menu
@@ -74,7 +76,7 @@ export default function TextEditor({
 
 
   return (
-    <div onContextMenu={disableContextMenu} style={{ "--primary": baseColor, "--scondary": textColor }} className="editor-container">
+    <div onContextMenu={disableContextMenu} style={{ "--primary": baseColor, "--scondary": textColor }as React.CSSProperties & { "--primary"?: string }} className="editor-container">
       <div className="space-between">
         <p className="date">16/11/2024</p>
         <button>#work</button>
@@ -120,7 +122,7 @@ export default function TextEditor({
         </div>
 
 
-        <ToolbarPlugin setOpenThemes={setOpenThemes} />
+        <ToolbarPlugin setOpenThemes={setOpenThemes} setOpen={setOpen} />
       </LexicalComposer>
       {/* <Thems baseColor={baseColor} setBaseColor={setBaseColor} openThemes={openThemes} setOpenThemes={setOpenThemes} /> */}
 

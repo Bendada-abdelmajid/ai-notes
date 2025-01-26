@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar'
 import { notes } from '../constante/notes'
 import Card from './ui/card'
 import Animated, { Extrapolation, interpolate, useAnimatedRef, useAnimatedStyle, useScrollViewOffset } from 'react-native-reanimated'
+import { useAppContext } from '../lib/appContext'
 type Props = {}
 const filters = ["all", "personal", "work", "home", "study"]
 const { width } = Dimensions.get("window")
@@ -15,7 +16,7 @@ const IMG_HEIGHT = width * .5;
 const HEADER_HEIGHT = 60;
 const spacing = 30;
 const Home = (props: Props) => {
-
+    const {setOpen}= useAppContext()
     const [active, setActive] = useState("")
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
     const scrollOffset = useScrollViewOffset(scrollRef);
@@ -73,14 +74,14 @@ const Home = (props: Props) => {
                     <Search size={18} color={"#fff"} />
                     <TextInput placeholderTextColor={"#eee"} style={styles.searchInput} placeholder='Search for your Notes' />
                 </View>
-                <Pressable style={styles.addBtn}>
+                <Pressable onPress={()=>setOpen(true)} style={styles.addBtn}>
                     <Plus size={25} strokeWidth={1.4} color={"#fff"} />
                 </Pressable>
                 <View style={styles.borderBottom} />
             </View>
             {/* hero */}
           
-            <StatusBar style='light' />
+        
             <Animated.ScrollView style={{paddingTop:HEADER_HEIGHT}} contentContainerStyle={{paddingBottom:HEADER_HEIGHT*2}} ref={scrollRef} scrollEventThrottle={16} stickyHeaderIndices={[1]} >
             <Animated.View style={[styles.hero, imageAnimatedStyle]}>
                 <Text style={styles.h1}>{"your\n notes"}</Text>

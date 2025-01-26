@@ -88,9 +88,10 @@ import { INSERT_EXCALIDRAW_COMMAND } from "./ExcalidrawPlugins";
 
 const LOW_PRIORIRTY = 1;
 type Props={
-  setOpenThemes: React.Dispatch<React.SetStateAction<boolean>>
+  setOpenThemes: React.Dispatch<React.SetStateAction<boolean>>;
+   setOpen :React.Dispatch<React.SetStateAction<boolean>>
 }
-export default function ToolbarPlugin({setOpenThemes}:Props) {
+export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
   const [editor] = useLexicalComposerContext();
   const [editeTabel, setEditTable] = useState<{
     show: boolean;
@@ -244,7 +245,7 @@ export default function ToolbarPlugin({setOpenThemes}:Props) {
   return (
     <>
       <div className="header">
-        <button className="back-btn">
+        <button onClick={()=> setOpen(false)} className="back-btn">
           <ArrowLeft size={20} strokeWidth={1.4} />
          
         </button>
