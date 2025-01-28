@@ -2,14 +2,19 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 import { BackHandler } from 'react-native';
-import { Note } from './types';
+import { Note, SaveNoteProps } from './types';
 import { StatusBar } from 'expo-status-bar';
+import { useSQLiteContext } from 'expo-sqlite';
 
 interface AppContextType {
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  saveNote: ({ id, title, content, desc }: SaveNoteProps) => void;
+  setEditItem: React.Dispatch<React.SetStateAction<Note | null>>;
+  editItem: Note | null;
+  deleteNotesByIds: (ids: number[]) => Promise<void>;
 }
 
 interface AppProviderProps {
@@ -20,9 +25,10 @@ interface AppProviderProps {
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  // const db = useSQLiteContext();
+  const db = useSQLiteContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [open, setOpen] = useState(false);
+  const [editItem, setEditItem] = useState<Note | null>(null);
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -42,18 +48,101 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
   }, [open]);
+  // const saveNote = ({id,title,content,desc}: SaveNoteProps) => {
+  //   console.log({id})
+  //   // Validate: Save only if either title or content is not empty
+  //   if (!title?.trim() && !content?.trim()) {
+  //     console.warn("Note not saved: Both title and content are empty.");
+  //     return;
+  //   }
 
-  // async function fetchNotes() {
-  //   const result = await db.getAllAsync<Note>('SELECT * FROM notes');
-  //   setNotes(result);
-  // }
+  //   setNotes((prevNotes) => {
+  //     // Update an existing note
+  //     if (id) {
+  //       console.log("have")
+  //       return prevNotes.map((note) =>
+  //         note.id === id
+  //           ? {
+  //               ...note,
+  //               title: title ?? note.title, // Preserve current title if null
+  //               content: content ?? note.content, // Preserve current content if null
+  //               desc: desc ?? note.desc, // Preserve current content if null
+  //             }
+  //           : note
+  //       );
+  //     }
 
-  // useEffect(() => {
-  //   fetchNotes();
-  // }, []);
+  //     // Add a new note
+  //     const newNote: Note = {
+  //       id: prevNotes.length ? Math.max(...prevNotes.map((n) => n.id)) + 1 : 1,
+  //       date: new Date(),
+  //       title: title ?? "Undefinded",
+  //       content: content ?? "",
+  //       desc: desc ?? "",
+  //     };
+  //     return [...prevNotes, newNote];
+  //   });
+  // };
+
+  const saveNote = async ({ id, title, content, desc }: SaveNoteProps) => {
+    console.log({ id });
+
+    if (!title?.trim() && !content?.trim()) {
+      console.warn("Note not saved: Both title and content are empty.");
+      return;
+    }
+
+    const date = new Date().toISOString(); // Store date as ISO string for consistency
+
+    if (id) {
+      // Update an existing note
+      await db.runAsync(
+        `UPDATE notes 
+           SET title = ?, content = ?, desc = ?, date = ? 
+           WHERE id = ?;`,
+        [title ?? "", content ?? "", desc ?? "", date, id]
+      ).then(() => fetchNotes()).catch((error) => console.error("Error updating note:", error));
+    } else {
+      // Add a new note
+      await db.runAsync(
+        `INSERT INTO notes (title, content, desc, date) 
+           VALUES (?, ?, ?, ?);`,
+        [title ?? "Untitled", content ?? "", desc ?? "", date]
+      ).then(() => fetchNotes()).catch((error) => console.error("Error adding note:", error));;
+    }
+
+  };
+  const deleteNotesByIds = async (ids: number[]) => {
+    if (!ids || ids.length === 0) {
+      console.log('No IDs provided');
+      return;
+    }
+
+    const placeholders = ids.map(() => '?').join(',');
+
+    try {
+      await db.runAsync(
+        `DELETE FROM notes WHERE id IN (${placeholders});`,
+        ...ids
+      );
+      console.log(`${ids.length} notes deleted successfully`);
+      setNotes(prev => prev.filter(el => !ids.includes(el.id)))
+    } catch (error) {
+      console.error('Error deleting notes:', error);
+    }
+  };
+
+  async function fetchNotes() {
+    const result = await db.getAllAsync<Note>('SELECT * FROM notes');
+    setNotes(result);
+  }
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
   return (
-    <AppContext.Provider value={{ notes, setNotes, open, setOpen }}>
+    <AppContext.Provider value={{ notes, setNotes, open, setOpen, saveNote, setEditItem, editItem, deleteNotesByIds }}>
       <StatusBar style={open ? "dark" : 'light'} />
       {children}
     </AppContext.Provider>

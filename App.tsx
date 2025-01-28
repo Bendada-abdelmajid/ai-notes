@@ -7,10 +7,12 @@ import Editor from './components/editor';
 import Home from './components/home';
 import { colors } from './constante/colors';
 import { AppProvider } from './lib/appContext';
+import { SQLiteProvider } from 'expo-sqlite';
+import { migrateDbIfNeeded } from './lib/db';
 
 SplashScreen.preventAutoHideAsync();
 export default function App() {
-  // LogBox.ignoreAllLogs()
+  LogBox.ignoreAllLogs()
   const [loaded, error] = useFonts({
     'Roboto-ExtraBold': require('./assets/fonts/Roboto-ExtraBold.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
@@ -28,13 +30,14 @@ export default function App() {
     return null;
   }
   return (
-    <AppProvider>
-      <View style={styles.container}>
-        <Home />
-        <Editor />
-     
-      </View>
-    </AppProvider>
+    <SQLiteProvider databaseName="notes.db" onInit={migrateDbIfNeeded}>
+      <AppProvider>
+        <View style={styles.container}>
+          <Home />
+          <Editor />
+        </View>
+      </AppProvider>
+    </SQLiteProvider>
   );
 }
 

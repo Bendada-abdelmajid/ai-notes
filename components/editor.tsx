@@ -1,5 +1,5 @@
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { StatusBar } from 'expo-status-bar'
 import TextEditor from './text-editor'
@@ -9,7 +9,7 @@ import { useAppContext } from '../lib/appContext';
 
 
 const Editor = () => {
-    const {open, setOpen}= useAppContext()
+    const {open, setOpen, saveNote, editItem, setEditItem}= useAppContext()
     const {width}= useWindowDimensions()
     const [editorState, setEditorState] = useState<string | null>(null);
     const [plainText, setPlainText] = useState("");
@@ -23,12 +23,16 @@ const Editor = () => {
             ]
         }
     })
-
+ useEffect(() => {
+    if (open == false) {
+        setEditItem(null)
+    }
+  }, [open])
     return (
         <Animated.View style={[styles.container, { backgroundColor: baseColor }, OpenStyle]}>
             {/* <StatusBar style='dark' /> */}
 
-            <TextEditor setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
+            <TextEditor open={open} editItem={editItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
 
         </Animated.View>
     )

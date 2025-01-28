@@ -87,15 +87,17 @@ import { INSERT_EXCALIDRAW_COMMAND } from "./ExcalidrawPlugins";
 
 
 const LOW_PRIORIRTY = 1;
-type Props={
+type Props = {
   setOpenThemes: React.Dispatch<React.SetStateAction<boolean>>;
-   setOpen :React.Dispatch<React.SetStateAction<boolean>>
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  save: (editor: LexicalEditor) => void;
+  open: boolean
 }
-export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
+export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Props) {
   const [editor] = useLexicalComposerContext();
   const [editeTabel, setEditTable] = useState<{
     show: boolean;
-    tabel: TableNode|null;
+    tabel: TableNode | null;
   }>({ show: false, tabel: null });
   const [disableMap, setDisableMap] = useState<{ [id: string]: boolean }>({
     undo: true,
@@ -112,64 +114,71 @@ export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
   const [openTextFormat, setOpenTextFormat] = useState(false);
   const [selectionFontSize, setSelectionFontSize] = useState("15px");
   const updateToolbar = () => {
-    const selection = $getSelection();
+    try {
 
 
-    if ($isRangeSelection(selection)) {
+      const selection = $getSelection();
 
-      const anchorNode = selection.anchor.getNode();
-      const parentBlock = anchorNode.getTopLevelElementOrThrow();
-  
-      const alignment: string = parentBlock.getFormatType() ? parentBlock.getFormatType() : parentBlock.getDirection() == "ltr" ? "left" : "right";
-      const newSelectionMap = {
-        "bold": selection.hasFormat("bold"),
-        "italic": selection.hasFormat("italic"),
-        "underline": selection.hasFormat("underline"),
-        "strikethrough": selection.hasFormat("strikethrough"),
-        "superscript": selection.hasFormat("superscript"),
-        "subscript": selection.hasFormat("subscript"),
-        "highlight": selection.hasFormat("highlight"),
-        "center": alignment == "center",
-        "left": alignment == "left",
-        "right": alignment == "right",
-      };
-      setSelectionMap(newSelectionMap);
-      setSelectionFontSize($getSelectionStyleValueForProperty(selection, "font-size", "15px"))
-      const element =
-        anchorNode.getKey() === "root"
-          ? anchorNode
-          : anchorNode.getTopLevelElementOrThrow();
-      const elementKey = element.getKey();
 
-      setSelectedElementKey(elementKey);
-      const elementDOM = editor.getElementByKey(elementKey);
-      if (!elementDOM) return;
-      if ($isTableCellNode(element.getParent())) {
-        const parentTable = $getNearestNodeOfType(anchorNode, TableNode);
-        setEditTable({
-          show: $isTableCellNode(element.getParent()),
-          tabel: parentTable,
-        });
-      } else {
-        setEditTable({ show: false, tabel: null });
-        if ($isListNode(element)) {
-          const parentList = $getNearestNodeOfType(anchorNode, ListNode);
+      if ($isRangeSelection(selection)) {
 
-          const type = parentList
-            ? parentList.getListType()
-            : element.getListType();
-       
-          setBlockType(type);
+        const anchorNode = selection.anchor.getNode();
+        if (!anchorNode) return
+        const parentBlock = anchorNode.getTopLevelElement();
+        if (!parentBlock) return
+        const alignment: string = parentBlock.getFormatType() ? parentBlock.getFormatType() : parentBlock.getDirection() == "ltr" ? "left" : "right";
+        const newSelectionMap = {
+          "bold": selection.hasFormat("bold"),
+          "italic": selection.hasFormat("italic"),
+          "underline": selection.hasFormat("underline"),
+          "strikethrough": selection.hasFormat("strikethrough"),
+          "superscript": selection.hasFormat("superscript"),
+          "subscript": selection.hasFormat("subscript"),
+          "highlight": selection.hasFormat("highlight"),
+          "center": alignment == "center",
+          "left": alignment == "left",
+          "right": alignment == "right",
+        };
+        setSelectionMap(newSelectionMap);
+        setSelectionFontSize($getSelectionStyleValueForProperty(selection, "font-size", "15px"))
+        const element =
+          anchorNode.getKey() === "root"
+            ? anchorNode
+            : anchorNode.getTopLevelElementOrThrow();
+        const elementKey = element.getKey();
+
+        setSelectedElementKey(elementKey);
+        const elementDOM = editor.getElementByKey(elementKey);
+        if (!elementDOM) return;
+        if ($isTableCellNode(element.getParent())) {
+          const parentTable = $getNearestNodeOfType(anchorNode, TableNode);
+          setEditTable({
+            show: $isTableCellNode(element.getParent()),
+            tabel: parentTable,
+          });
         } else {
-          const type = $isHeadingNode(element)
-            ? element.getTag()
-            : element.getType();
-          setBlockType(type);
-          if ($isCodeNode(element)) {
-            setCodeLanguage(element.getLanguage() || getDefaultCodeLanguage());
+          setEditTable({ show: false, tabel: null });
+          if ($isListNode(element)) {
+            const parentList = $getNearestNodeOfType(anchorNode, ListNode);
+
+            const type = parentList
+              ? parentList.getListType()
+              : element.getListType();
+
+            setBlockType(type);
+          } else {
+            const type = $isHeadingNode(element)
+              ? element.getTag()
+              : element.getType();
+            setBlockType(type);
+            if ($isCodeNode(element)) {
+              setCodeLanguage(element.getLanguage() || getDefaultCodeLanguage());
+            }
           }
         }
       }
+    } catch (error) {
+      console.log("error from updateToolbar: ", error)
     }
   };
 
@@ -241,13 +250,20 @@ export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
     { name: "table", Icon: Table, onClick: () => AddTable(editor) },
     { name: "code", Icon: Code, onClick: () => AddCode(editor) },
   ];
+  useEffect(() => {
+    if (open == false) {
+      save(editor)
+    }
+
+
+  }, [open])
 
   return (
     <>
       <div className="header">
-        <button onClick={()=> setOpen(false)} className="back-btn">
+        <button onClick={() => { setOpen(false) }} className="back-btn">
           <ArrowLeft size={20} strokeWidth={1.4} />
-         
+
         </button>
         <div style={{ display: "flex" }}>
           <button >
@@ -258,7 +274,7 @@ export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
           </button>
         </div>
         <div style={{ display: "flex" }}>
-          <button onClick={()=>setOpenThemes(true)}>
+          <button onClick={() => setOpenThemes(true)}>
             <Palette size={20} strokeWidth={1.4} />
           </button>
           <button >
@@ -267,19 +283,19 @@ export default function ToolbarPlugin({setOpenThemes, setOpen}:Props) {
         </div>
       </div>
       <div className={`edit-tabel-btns ${editeTabel.show ? "show" : ""}`}>
-          <button onClick={() => editeTabel.tabel && InsertTableColumn(editor, editeTabel.tabel)}>
-            Add Columne
-          </button>
-          <span />
-          <button onClick={() => editeTabel.tabel && InsertTableRow(editor, editeTabel.tabel)}>
-            Add Row
-          </button>
-          <span />
-          <button onClick={() => DeleteTableRow(editor)}>Delete Row</button>
-        </div>
+        <button onClick={() => editeTabel.tabel && InsertTableColumn(editor, editeTabel.tabel)}>
+          Add Columne
+        </button>
+        <span />
+        <button onClick={() => editeTabel.tabel && InsertTableRow(editor, editeTabel.tabel)}>
+          Add Row
+        </button>
+        <span />
+        <button onClick={() => DeleteTableRow(editor)}>Delete Row</button>
+      </div>
       <div className={`toolbar  ${openTextFormat ? "show-text-format" : ""} `}>
 
-     
+
 
         <>
           <div className={`menu`}>

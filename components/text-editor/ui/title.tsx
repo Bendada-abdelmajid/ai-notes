@@ -1,10 +1,13 @@
 import React, { useRef, useState } from "react";
 
-type Props = {}
+type Props = {
+    setTitle: React.Dispatch<React.SetStateAction<string>>;
+    title:string;
+}
 
-const Title = ({ }: Props) => {
+const Title = ({ setTitle, title}: Props) => {
 
-    const [title, setTitle] = useState("");
+
     const handleTitle = (e: React.FormEvent<HTMLTextAreaElement>) => {
         setTitle(e.currentTarget.value);
     };
