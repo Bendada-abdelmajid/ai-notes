@@ -87,34 +87,38 @@ const Home = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
+
         <View style={styles.header}>
-          <View style={styles.searchBar}>
-            <Search size={18} color={"#fff"} />
-            <TextInput
-              placeholderTextColor={"#eee"}
-              style={styles.searchInput}
-              placeholder="Search for your Notes"
-            />
-          </View>
-          <Pressable onPress={() => setOpen(true)} style={styles.addBtn}>
-            <Plus size={25} strokeWidth={1.4} color={"#fff"} />
-          </Pressable>
-          <View style={styles.borderBottom} />
+          {showSelected ? <ActionButtons slecteds={selecteds} setSelecteds={setSelecteds} setShowSelected={setShowSelected} showSelected={showSelected} />
+            : <View style={styles.headerContent}>
+              <View style={styles.searchBar}>
+                <Search size={18} color={"#fff"} />
+                <TextInput
+                  placeholderTextColor={"#eee"}
+                  style={styles.searchInput}
+                  placeholder="Search for your Notes"
+                />
+              </View>
+              <Pressable onPress={() => setOpen(true)} style={styles.addBtn}>
+                <Plus size={25} strokeWidth={1.4} color={"#fff"} />
+              </Pressable>
+              <View style={styles.borderBottom} />
+            </View>}
         </View>
-        {/* hero */}
+
 
         <Animated.ScrollView
           style={{ paddingTop: HEADER_HEIGHT }}
-          contentContainerStyle={{ paddingBottom: HEADER_HEIGHT * 2 }}
+          contentContainerStyle={{ paddingBottom: HEADER_HEIGHT * 2, paddingTop: showSelected ? spacing * 2 : 0 }}
           ref={scrollRef}
           scrollEventThrottle={16}
           stickyHeaderIndices={[1]}
         >
-          <Animated.View style={[styles.hero, imageAnimatedStyle]}>
+          {!showSelected && <Animated.View style={[styles.hero, imageAnimatedStyle]}>
             <Text style={styles.h1}>{"your\n notes"}</Text>
             <Text style={styles.count}>/14</Text>
-          </Animated.View>
-          <View style={styles.filtersCont}>
+          </Animated.View>}
+          {!showSelected && <View style={styles.filtersCont}>
             <FlatList
               style={styles.filters}
               data={filters}
@@ -134,7 +138,7 @@ const Home = (props: Props) => {
               )}
             />
             {/* <Animated.View style={[styles.shadow]}/> */}
-          </View>
+          </View>}
           <FlatList
             style={{ flex: 1, width: "100%" }}
             data={notes}
@@ -154,7 +158,7 @@ const Home = (props: Props) => {
             )}
           />
         </Animated.ScrollView>
-        <ActionButtons slecteds={selecteds} setSelecteds={setSelecteds} setShowSelected={setShowSelected} showSelected={showSelected}/>
+
       </View>
     </View>
   );
@@ -165,26 +169,25 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     paddingTop: Constants.statusBarHeight,
-
     backgroundColor: colors.black,
     flex: 1,
     position: "relative",
   },
   header: {
     position: "absolute",
-
     top: 0,
     left: 0,
     backgroundColor: colors.black,
     height: HEADER_HEIGHT,
-    width: width - 40,
-
+    width: width,
     zIndex: 20,
-    marginHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+
+  },
+  headerContent: {
     display: "flex",
     flexDirection: "row",
+    alignItems: "center"
   },
   searchBar: {
     backgroundColor: colors.black,
