@@ -2,26 +2,27 @@ import { Dimensions, Pressable, StyleSheet, Text } from 'react-native'
 import React, { useEffect } from 'react'
 import { colors } from '../../constante/colors'
 import Animated, { Extrapolation, interpolate, interpolateColor, LinearTransition, SharedValue, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
+import { Folder } from '../../lib/types'
 
 
 type Props = {
-    item: string;
+    item: Folder;
     index: number;
-    active: string;
-    setActive: React.Dispatch<React.SetStateAction<string>>;
+    active: number;
+    setActive: React.Dispatch<React.SetStateAction<number>>;
     scrollOffset: SharedValue<number>
 }
 const { width } = Dimensions.get("window")
 
 const spacing = 30;
-const IMG_HEIGHT = width * .5  ;
+const IMG_HEIGHT = width * .5;
 const AnimatedButton = Animated.createAnimatedComponent(Pressable)
 
 
 const FilterBtn = ({ item, setActive, active, scrollOffset }: Props) => {
     const activevalue = useSharedValue(0)
     useEffect(() => {
-        activevalue.value = withSpring(active == item ? 1 : 0, { damping: 10 })
+        activevalue.value = withSpring(active == item.id ? 1 : 0, { damping: 10 })
 
     }, [active])
     const animtedStyle = useAnimatedStyle(() => {
@@ -36,15 +37,15 @@ const FilterBtn = ({ item, setActive, active, scrollOffset }: Props) => {
                 [0, 0.5, 1],
                 [colors.gray, colors.orange, colors.orange]
             ),
-            paddingHorizontal:interpolate(
+            paddingHorizontal:  interpolate(
                 scrollOffset.value,
-                [IMG_HEIGHT, IMG_HEIGHT +spacing],
+                [IMG_HEIGHT, IMG_HEIGHT + spacing],
                 [16, 14],
                 Extrapolation.CLAMP
             ),
-            paddingVertical: interpolate(
+            paddingVertical:  interpolate(
                 scrollOffset.value,
-                [IMG_HEIGHT, IMG_HEIGHT +spacing],
+                [IMG_HEIGHT, IMG_HEIGHT + spacing],
                 [7, 5],
                 Extrapolation.CLAMP
             ),
@@ -63,18 +64,18 @@ const FilterBtn = ({ item, setActive, active, scrollOffset }: Props) => {
             //     [400, 500],
             //     Extrapolation.CLAMP
             // )}`,
-            fontSize: interpolate(
+            fontSize:  interpolate(
                 scrollOffset.value,
-                [IMG_HEIGHT, IMG_HEIGHT +spacing],
+                [IMG_HEIGHT, IMG_HEIGHT + spacing],
                 [23, 15],
                 Extrapolation.CLAMP
             ),
-           
+
         }
     })
     return (
-        <AnimatedButton  style={[styles.btn, animtedStyle]} onPress={() => setActive(item)}>
-            <Animated.Text style={[styles.text, animtedTextStyle]}>#{item}</Animated.Text>
+        <AnimatedButton style={[styles.btn, animtedStyle]} onPress={() => setActive(item.id)}>
+            <Animated.Text style={[styles.text, animtedTextStyle]}>#{item.title}</Animated.Text>
         </AnimatedButton>
     )
 }
@@ -83,7 +84,7 @@ export default FilterBtn
 
 const styles = StyleSheet.create({
     btn: {
-       
+
         borderRadius: 30,
         borderWidth: 1
 

@@ -21,8 +21,8 @@ interface CardProps {
     index: number;
     setShowSelected: (value: boolean) => void;
     showSelected: boolean;
-    setSelecteds: React.Dispatch<React.SetStateAction<number[]>>;
-    selecteds: number[];
+    setSelectedIds: React.Dispatch<React.SetStateAction<number[]>>;
+    selectedIds: number[];
 }
 
 interface CheckButtonProps {
@@ -57,28 +57,28 @@ const Card: React.FC<CardProps> = ({
     item,
     index,
     setShowSelected,
-    selecteds,
-    setSelecteds,
+    selectedIds,
+    setSelectedIds,
     showSelected,
 }) => {
     const { setEditItem, setOpen } = useAppContext();
     const scaleValue = useSharedValue(1);
 
-    const selected = useMemo(() => selecteds.includes(item.id), [selecteds, item.id]);
+    const selected = useMemo(() => selectedIds.includes(item.id), [selectedIds, item.id]);
 
     const handlePress = useCallback(() => {
-        setSelecteds(prev =>
+        setSelectedIds(prev =>
             prev.includes(item.id)
                 ? prev.filter(el => el !== item.id)
                 : [...prev, item.id]
         );
-    }, [item.id, setSelecteds]);
+    }, [item.id, setSelectedIds]);
 
     const handleLongPress = useCallback(() => {
-        setSelecteds(prev => [...prev, item.id]);
+        setSelectedIds(prev => [...prev, item.id]);
         setShowSelected(true);
 
-    }, [item.id, setSelecteds, setShowSelected]);;
+    }, [item.id, setSelectedIds, setShowSelected]);;
 
     const handlePressIn = useCallback(() => {
         scaleValue.value = withTiming(SCALE_VALUE);

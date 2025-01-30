@@ -2,12 +2,14 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 import { BackHandler } from 'react-native';
-import { Note, SaveNoteProps } from './types';
+import { Folder, Note, SaveNoteProps } from './types';
 import { StatusBar } from 'expo-status-bar';
 import { useSQLiteContext } from 'expo-sqlite';
 
 interface AppContextType {
   notes: Note[];
+  folders: Folder[];
+  setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -27,6 +29,7 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const db = useSQLiteContext();
   const [notes, setNotes] = useState<Note[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [open, setOpen] = useState(false);
   const [editItem, setEditItem] = useState<Note | null>(null);
 
@@ -105,10 +108,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     } else {
       // Add a new note
       await db.runAsync(
-        `INSERT INTO notes (title, content, desc, date) 
-           VALUES (?, ?, ?, ?);`,
-        [title ?? "Untitled", content ?? "", desc ?? "", date]
-      ).then(() => fetchNotes()).catch((error) => console.error("Error adding note:", error));;
+        `INSERT INTO notes (title, content, desc, date, folderId) 
+           VALUES (?, ?, ?, ?,?);`,
+        [title ?? "Untitled", content ?? "", desc ?? "", date, 0]
+      ).then(() => fetchNotes()).catch((error) => console.error("Error adding note:", error));
     }
 
   };
@@ -136,13 +139,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     const result = await db.getAllAsync<Note>('SELECT * FROM notes');
     setNotes(result);
   }
+  async function fetchFolders() {
+    const result = await db.getAllAsync<Folder>('SELECT * FROM folders');
+    setFolders(result);
+  }
 
   useEffect(() => {
+    fetchFolders();
     fetchNotes();
+
   }, []);
 
   return (
-    <AppContext.Provider value={{ notes, setNotes, open, setOpen, saveNote, setEditItem, editItem, deleteNotesByIds }}>
+    <AppContext.Provider value={{folders, setFolders,  notes, setNotes, open, setOpen, saveNote, setEditItem, editItem, deleteNotesByIds }}>
       <StatusBar style={open ? "dark" : 'light'} />
       {children}
     </AppContext.Provider>

@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { act, useCallback, useMemo, useState } from "react";
 import { colors } from "../constante/colors";
 import { Plus, Search } from "lucide-react-native";
 import FilterBtn from "./ui/filter-btn";
@@ -17,27 +17,44 @@ import { StatusBar } from "expo-status-bar";
 import Card from "./ui/card";
 import Animated, {
   Extrapolation,
+  FadeIn,
+  FadeInLeft,
+  FadeInRight,
+  FadeInUp,
+  FadeOutLeft,
+  FadeOutRight,
+  FadeOutUp,
   interpolate,
+  LayoutAnimationConfig,
+  LinearTransition,
   useAnimatedRef,
   useAnimatedStyle,
   useScrollViewOffset,
 } from "react-native-reanimated";
 import { useAppContext } from "../lib/appContext";
-import { Note } from "../lib/types";
+import { Folder, Note } from "../lib/types";
 import ActionButtons from "./home/action-btns";
+import DeleteModal from "./home/delete-modal";
+import FilesModal from "./home/files-modal";
 type Props = {};
-const filters = ["all", "personal", "work", "home", "study"];
+
 const { width } = Dimensions.get("window");
 const IMG_HEIGHT = width * 0.5;
 const HEADER_HEIGHT = 60;
 const spacing = 30;
+const AnimatedButton = Animated.createAnimatedComponent(Pressable)
 const Home = (props: Props) => {
-  const { setOpen, notes } = useAppContext();
-  const [active, setActive] = useState("");
+  const { setOpen, notes, deleteNotesByIds, folders } = useAppContext();
+  const [active, setActive] = useState(-1);
+  const [activeSearch, setActiveSearch] = useState(false);
   const [showSelected, setShowSelected] = useState(false);
-  const [selecteds, setSelecteds] = useState<number[]>([]);
+  const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollRef);
+  // const data = useMemo(() => search ? notes.filter(el=> el.title?.includes(search)) : active == -1 ? notes : notes.filter(el => el.folderId == active), [notes, active])
   const imageAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: interpolate(
@@ -46,102 +63,121 @@ const Home = (props: Props) => {
         [1, 1, 0],
         Extrapolation.CLAMP
       ),
-      // transform: [
-      //     {
-      //         translateY: interpolate(
-      //             scrollOffset.value,
-      //             [-IMG_HEIGHT, 0, IMG_HEIGHT],
-      //             [-IMG_HEIGHT / 2, 0, IMG_HEIGHT*.2]
-      //         )
-      //     },
-
-      // ]
     };
   });
-  // const shadowAnimatedStyle = useAnimatedStyle(() => {
-  //     return {
-  //         opacity: interpolate(
-  //             scrollOffset.value,
-  //             [-IMG_HEIGHT, 0, IMG_HEIGHT ],
-  //             [0, 0, 1],
-  //             Extrapolation.CLAMP
-  //         ),
-  //         // width: interpolate(
-  //         //     scrollOffset.value,
-  //         //     [-IMG_HEIGHT, 0, IMG_HEIGHT ],
-  //         //     [0, 0, width-40],
-  //         //     Extrapolation.CLAMP
-  //         // ),
-  //         // transform: [
-  //         //     {
-  //         //         translateY: interpolate(
-  //         //             scrollOffset.value,
-  //         //             [-IMG_HEIGHT, 0, IMG_HEIGHT],
-  //         //             [-IMG_HEIGHT / 2, 0, IMG_HEIGHT*.2]
-  //         //         )
-  //         //     },
+  const filters: Folder[] = [{ title: "all", id: -1 }, { title: "uncategorized", id: 0 }, ...folders];
+  const handleDelete = useCallback(() => {
+    deleteNotesByIds(selectedIds);
+    setShowSelected(false);
+    setSelectedIds([]);
+    setIsDeleteModalOpen(false);
+  }, [selectedIds, deleteNotesByIds]);
+  const handleFileChange = useCallback(() => {
+    setShowSelected(false);
+    setSelectedIds([]);
+    setIsFileModalOpen(false);
+  }, [selectedIds]);
+  const data = useMemo(() => {
+    if (search) {
+      return notes.filter(el => el.title?.toLowerCase().includes(search.toLowerCase()));
+    }
 
-  //         // ]
-  //     };
-  // });
+    return active === -1 ? notes : notes.filter(el => el.folderId === active);
+  }, [notes, active, search]);
+
   return (
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
-
         <View style={styles.header}>
-          {showSelected ? <ActionButtons slecteds={selecteds} setSelecteds={setSelecteds} setShowSelected={setShowSelected} showSelected={showSelected} />
-            : <View style={styles.headerContent}>
-              <View style={styles.searchBar}>
+          <LayoutAnimationConfig skipEntering> {showSelected ? (
+            <ActionButtons
+              selectedIds={selectedIds}
+              setSelectedIds={setSelectedIds}
+              setShowSelected={setShowSelected}
+              showSelected={showSelected}
+              onOpenDelete={() => setIsDeleteModalOpen(true)}
+              onOpenFile={() => setIsFileModalOpen(true)}
+            />
+          ) : (
+            <Animated.View entering={FadeInUp.duration(400)}
+              exiting={FadeOutUp.duration(200)} style={styles.headerContent}>
+              <Animated.View layout={LinearTransition} style={styles.searchBar}>
                 <Search size={18} color={"#fff"} />
                 <TextInput
+                  onPress={() => setActiveSearch(true)}
+                  onBlur={() => setActiveSearch(false)}
+                  autoFocus={activeSearch}
+                  value={search}
+                  onChangeText={setSearch}
                   placeholderTextColor={"#eee"}
                   style={styles.searchInput}
                   placeholder="Search for your Notes"
                 />
-              </View>
-              <Pressable onPress={() => setOpen(true)} style={styles.addBtn}>
-                <Plus size={25} strokeWidth={1.4} color={"#fff"} />
-              </Pressable>
-              <View style={styles.borderBottom} />
-            </View>}
+              </Animated.View>
+              <LayoutAnimationConfig skipEntering>
+                {activeSearch ? <AnimatedButton  key={"clear-search"} entering={FadeInLeft.duration(300)}
+                  exiting={FadeOutLeft.duration(300)}
+                  onPress={() => setActiveSearch(false)} style={styles.cancelBtn}>
+                  <Text style={{ color: colors.orange, fontSize: 16,  }}>Cancel</Text>
+                </AnimatedButton>
+                  : <AnimatedButton key={"add"} entering={FadeInRight.duration(300)}
+                    exiting={FadeOutRight.duration(300)} onPress={() => setOpen(true)} style={styles.addBtn}>
+                    <Plus size={25} strokeWidth={1.4} color={"#fff"} />
+                  </AnimatedButton>}
+              </LayoutAnimationConfig>
+
+            </Animated.View>
+          )}
+          </LayoutAnimationConfig>
+          <View style={styles.borderBottom} />
         </View>
 
-
-        <Animated.ScrollView
+        <Animated.ScrollView layout={LinearTransition}
           style={{ paddingTop: HEADER_HEIGHT }}
-          contentContainerStyle={{ paddingBottom: HEADER_HEIGHT * 2, paddingTop: showSelected ? spacing * 2 : 0 }}
+          contentContainerStyle={{
+            paddingBottom: HEADER_HEIGHT * 2,
+           paddingTop: activeSearch ? spacing  : 0,
+          }}
           ref={scrollRef}
           scrollEventThrottle={16}
           stickyHeaderIndices={[1]}
         >
-          {!showSelected && <Animated.View style={[styles.hero, imageAnimatedStyle]}>
+
+          <Animated.View style={[styles.hero, imageAnimatedStyle]}>
             <Text style={styles.h1}>{"your\n notes"}</Text>
-            <Text style={styles.count}>/14</Text>
-          </Animated.View>}
-          {!showSelected && <View style={styles.filtersCont}>
-            <FlatList
-              style={styles.filters}
-              data={filters}
-              contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
-              keyExtractor={(item) => item}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              overScrollMode="never"
-              renderItem={({ item, index }) => (
-                <FilterBtn
-                  scrollOffset={scrollOffset}
-                  item={item}
-                  index={index}
-                  active={active}
-                  setActive={setActive}
+            <Text style={styles.count}>/{data.length}</Text>
+          </Animated.View>
+
+
+
+          <LayoutAnimationConfig skipEntering>
+            {!activeSearch &&
+              <Animated.View key={"filters"} entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)} layout={LinearTransition} style={[styles.filtersCont]}>
+                <FlatList
+                  style={styles.filters}
+                  data={filters}
+                  contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
+                  keyExtractor={(item) => item.id.toString()}
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  overScrollMode="never"
+                  renderItem={({ item, index }) => (
+                    <FilterBtn
+                      scrollOffset={scrollOffset}
+                      item={item}
+                      index={index}
+                      active={active}
+                      setActive={setActive}
+                    />
+                  )}
                 />
-              )}
-            />
-            {/* <Animated.View style={[styles.shadow]}/> */}
-          </View>}
+                {/* <Animated.View style={[styles.shadow]}/> */}
+              </Animated.View>}
+          </LayoutAnimationConfig>
+
           <FlatList
             style={{ flex: 1, width: "100%" }}
-            data={notes}
+            data={data}
             contentContainerStyle={{ gap: 30, paddingHorizontal: 20 }}
             keyExtractor={(item) => item.id.toString()}
             scrollEnabled={false}
@@ -150,15 +186,27 @@ const Home = (props: Props) => {
               <Card
                 item={item}
                 index={index}
-                selecteds={selecteds}
-                setSelecteds={setSelecteds}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
                 setShowSelected={setShowSelected}
                 showSelected={showSelected}
               />
             )}
           />
         </Animated.ScrollView>
+        <DeleteModal
+          onDelete={handleDelete}
+          isOpen={isDeleteModalOpen}
+          selectedCount={selectedIds.length}
+          onClose={() => setIsDeleteModalOpen(false)}
+        />
+        <FilesModal
 
+          isOpen={isFileModalOpen}
+          selectedIds={selectedIds}
+
+          onClose={() => setIsFileModalOpen(false)}
+        />
       </View>
     </View>
   );
@@ -182,12 +230,12 @@ const styles = StyleSheet.create({
     width: width,
     zIndex: 20,
     paddingHorizontal: 20,
-
   },
   headerContent: {
+    flex: 1,
     display: "flex",
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   searchBar: {
     backgroundColor: colors.black,
@@ -204,6 +252,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     fontSize: 16,
   },
+  cancelBtn:{
+    width:100,
+    height: 44,
+    alignItems: "flex-end",
+    justifyContent:"center"
+  },
   addBtn: {
     width: 44,
     height: 44,
@@ -213,12 +267,13 @@ const styles = StyleSheet.create({
   borderBottom: {
     position: "absolute",
     bottom: 0,
-    left: 0,
+    left: 20,
     width: "100%",
     height: 1,
     backgroundColor: colors.gray,
     opacity: 0.7,
   },
+
   hero: {
     // position: "absolute",
     // top: HEADER_HEIGHT + spacing,
@@ -227,7 +282,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
     marginTop: spacing * 1.5,
-    marginBottom: spacing * 0.5,
+    marginBottom: spacing * 0.7,
     paddingHorizontal: 20,
     //    backgroundColor:"red",
   },
