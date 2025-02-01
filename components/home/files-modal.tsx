@@ -41,7 +41,7 @@ const FilesModal = ({ isOpen, onClose, selectedIds }: Props) => {
     const db = useSQLiteContext()
     const { setFolders, setNotes } = useAppContext()
     const { folders } = useAppContext();
-    const [active, setActive] = useState(0);
+    const [activeFilter, setActiveFilter] = useState(0);
     const [showNewFile, setShowNewFile] = useState(false);
     const [deleteItem, setDeleteItem] = useState<Folder | null>(null);
     const handleMove = async () => {
@@ -50,9 +50,9 @@ const FilesModal = ({ isOpen, onClose, selectedIds }: Props) => {
         try {
             await db.runAsync(
                 `UPDATE notes SET folderId = ? WHERE id IN (${placeholders});`,
-                [active, ...selectedIds]
+                [activeFilter, ...selectedIds]
             );
-            setNotes(prev => prev.map(el => selectedIds.includes(el.id) ? { ...el, folderId: active } : el))
+            setNotes(prev => prev.map(el => selectedIds.includes(el.id) ? { ...el, folderId: activeFilter } : el))
             onClose()
         } catch (error) {
             console.error('Error moving notes:', error);
@@ -101,8 +101,8 @@ const FilesModal = ({ isOpen, onClose, selectedIds }: Props) => {
                                     <FileField
                                         item={item}
                                         index={index}
-                                        active={active}
-                                        setActive={setActive}
+                                        activeFilter={activeFilter}
+                                        setActiveFilter={setActiveFilter}
                                         setDeleteItem={setDeleteItem}
                                     />
                                 )}
@@ -131,20 +131,20 @@ const FilesModal = ({ isOpen, onClose, selectedIds }: Props) => {
 type FileFieldProps = {
     item: Folder;
     index: number;
-    active: number;
-    setActive: React.Dispatch<React.SetStateAction<number>>;
+    activeFilter: number;
+    setActiveFilter: React.Dispatch<React.SetStateAction<number>>;
     setDeleteItem: React.Dispatch<React.SetStateAction<Folder | null>>
 };
 const AnimatedInput = Animated.createAnimatedComponent(TextInput);
-const FileField = ({ item, index, active, setActive, setDeleteItem }: FileFieldProps) => {
+const FileField = ({ item, index, activeFilter, setActiveFilter, setDeleteItem }: FileFieldProps) => {
     const activevalue = useSharedValue(0);
     const db = useSQLiteContext();
     const { setFolders } = useAppContext();
     const [folder, setFolder] = useState(item.title);
     const [editable, setEditable] = useState(false);
     useEffect(() => {
-        activevalue.value = withSpring(active == item.id ? 1 : 0, { damping: 10 });
-    }, [active]);
+        activevalue.value = withSpring(activeFilter == item.id ? 1 : 0, { damping: 10 });
+    }, [activeFilter]);
     const animtedStyle = useAnimatedStyle(() => {
         return {
             borderColor: interpolateColor(
@@ -187,7 +187,7 @@ const FileField = ({ item, index, active, setActive, setDeleteItem }: FileFieldP
 
     };
     return (
-        <Pressable onPress={() => setActive(item.id)} style={styles.row}>
+        <Pressable onPress={() => setActiveFilter(item.id)} style={styles.row}>
             {!editable && (
                 <Animated.View
                     entering={FadeInLeft.duration(300)}

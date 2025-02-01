@@ -8,8 +8,8 @@ import { Folder } from '../../lib/types'
 type Props = {
     item: Folder;
     index: number;
-    active: number;
-    setActive: React.Dispatch<React.SetStateAction<number>>;
+    activeFilter: number;
+    setActiveFilter: React.Dispatch<React.SetStateAction<number>>;
     scrollOffset: SharedValue<number>
 }
 const { width } = Dimensions.get("window")
@@ -19,12 +19,12 @@ const IMG_HEIGHT = width * .5;
 const AnimatedButton = Animated.createAnimatedComponent(Pressable)
 
 
-const FilterBtn = ({ item, setActive, active, scrollOffset }: Props) => {
+const FilterBtn = ({ item, setActiveFilter, activeFilter, scrollOffset }: Props) => {
     const activevalue = useSharedValue(0)
     useEffect(() => {
-        activevalue.value = withSpring(active == item.id ? 1 : 0, { damping: 10 })
+        activevalue.value = withSpring(activeFilter == item.id ? 1 : 0, { damping: 10 })
 
-    }, [active])
+    }, [activeFilter])
     const animtedStyle = useAnimatedStyle(() => {
         return {
             backgroundColor: interpolateColor(
@@ -74,7 +74,7 @@ const FilterBtn = ({ item, setActive, active, scrollOffset }: Props) => {
         }
     })
     return (
-        <AnimatedButton style={[styles.btn, animtedStyle]} onPress={() => setActive(item.id)}>
+        <AnimatedButton style={[styles.btn, animtedStyle]} onPress={() => setActiveFilter(item.id)}>
             <Animated.Text style={[styles.text, animtedTextStyle]}>#{item.title}</Animated.Text>
         </AnimatedButton>
     )

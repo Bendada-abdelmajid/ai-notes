@@ -44,8 +44,8 @@ const HEADER_HEIGHT = 60;
 const spacing = 30;
 const AnimatedButton = Animated.createAnimatedComponent(Pressable)
 const Home = (props: Props) => {
-  const { setOpen, notes, deleteNotesByIds, folders } = useAppContext();
-  const [active, setActive] = useState(-1);
+  const { setOpen, notes, deleteNotesByIds, folders , activeFilter, setActiveFilter} = useAppContext();
+
   const [activeSearch, setActiveSearch] = useState(false);
   const [showSelected, setShowSelected] = useState(false);
   const [search, setSearch] = useState("");
@@ -54,7 +54,7 @@ const Home = (props: Props) => {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollRef);
-  // const data = useMemo(() => search ? notes.filter(el=> el.title?.includes(search)) : active == -1 ? notes : notes.filter(el => el.folderId == active), [notes, active])
+  // const data = useMemo(() => search ? notes.filter(el=> el.title?.includes(search)) : activeFilter == -1 ? notes : notes.filter(el => el.folderId == activeFilter), [notes, activeFilter])
   const imageAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: interpolate(
@@ -82,8 +82,8 @@ const Home = (props: Props) => {
       return notes.filter(el => el.title?.toLowerCase().includes(search.toLowerCase()));
     }
 
-    return active === -1 ? notes : notes.filter(el => el.folderId === active);
-  }, [notes, active, search]);
+    return activeFilter === -1 ? notes : notes.filter(el => el.folderId === activeFilter);
+  }, [notes, activeFilter, search]);
 
   return (
     <View style={styles.container}>
@@ -104,6 +104,7 @@ const Home = (props: Props) => {
               <Animated.View layout={LinearTransition} style={styles.searchBar}>
                 <Search size={18} color={"#fff"} />
                 <TextInput
+                keyboardAppearance="dark"
                   onPress={() => setActiveSearch(true)}
                   onBlur={() => setActiveSearch(false)}
                   autoFocus={activeSearch}
@@ -166,8 +167,8 @@ const Home = (props: Props) => {
                       scrollOffset={scrollOffset}
                       item={item}
                       index={index}
-                      active={active}
-                      setActive={setActive}
+                      activeFilter={activeFilter}
+                      setActiveFilter={setActiveFilter}
                     />
                   )}
                 />

@@ -17,6 +17,9 @@ interface AppContextType {
   setEditItem: React.Dispatch<React.SetStateAction<Note | null>>;
   editItem: Note | null;
   deleteNotesByIds: (ids: number[]) => Promise<void>;
+  setActiveFilter: React.Dispatch<React.SetStateAction<number>>;
+  activeFilter: number
+
 }
 
 interface AppProviderProps {
@@ -32,6 +35,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [open, setOpen] = useState(false);
   const [editItem, setEditItem] = useState<Note | null>(null);
+  const [activeFilter, setActiveFilter] = useState(-1);
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -151,7 +155,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <AppContext.Provider value={{folders, setFolders,  notes, setNotes, open, setOpen, saveNote, setEditItem, editItem, deleteNotesByIds }}>
+    <AppContext.Provider value={{folders, setFolders,  notes, setNotes, open, setOpen, saveNote, setEditItem, editItem, deleteNotesByIds, activeFilter, setActiveFilter }}>
       <StatusBar style={open ? "dark" : 'light'} />
       {children}
     </AppContext.Provider>

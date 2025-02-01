@@ -35,6 +35,8 @@ import {
 } from "@lexical/table";
 
 import {
+  AArrowDown,
+  AArrowUp,
   AlignCenter,
   AlignLeft,
   AlignRight,
@@ -61,7 +63,7 @@ import {
   Type,
   Underline,
   Undo,
-} from "lucide-react-native";
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AddCode,
@@ -229,33 +231,33 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
     );
 
   }
-  const commandes = [
+  const Insertcommandes = [
     {
       name: "checkList",
       Icon: SquareCheck,
       onClick: () => formatCheckList(editor, blockType),
     },
-    // {
-    //   name: "list",
-    //   Icon: List,
-    //   onClick: () => formatBulletList(editor, blockType),
-    // },
-    // {
-    //   name: "orderList",
-    //   Icon: ListOrdered,
-    //   onClick: () => formatNumberedList(editor, blockType),
-    // },
+    {
+      name: "list",
+      Icon: List,
+      onClick: () => formatBulletList(editor, blockType),
+    },
+    {
+      name: "orderList",
+      Icon: ListOrdered,
+      onClick: () => formatNumberedList(editor, blockType),
+    },
     { name: "image", Icon: Image, onClick: () => setOpenImageModal(true) },
     { name: "draw", Icon: Pen, onClick: addExcalidraw },
     { name: "table", Icon: Table, onClick: () => AddTable(editor) },
     { name: "code", Icon: Code, onClick: () => AddCode(editor) },
+
   ];
+
   useEffect(() => {
     if (open == false) {
       save(editor)
     }
-
-
   }, [open])
 
   return (
@@ -300,29 +302,30 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
         <>
           <div className={`menu`}>
             <div className="format-menu">
-              {" "}
-              {commandes.map(({ Icon, name, onClick }) => (
+              {Insertcommandes.map(({ Icon, name, onClick }) => (
                 <button key={name} className="toolbar-item" onClick={onClick}>
                   <Icon size={24} strokeWidth={1.4} />
                 </button>
               ))}
             </div>
 
+
             <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} />
           </div>
-          <button
-            onClick={() => setOpenTextFormat((prev) => !prev)}
-            className="text-btn"
-          ></button>
+          <div className="nav-btns">
+            <button className={openTextFormat ? "" : "active"} onClick={()=> setOpenTextFormat(false)}>Insert</button>
+            <button  className={openTextFormat ?"active" :""} onClick={()=> setOpenTextFormat(true)}>text</button>
+          </div>
+
         </>
 
 
 
       </div>
-      <ImageModal
+      {/* <ImageModal
         openImageModal={openImageModal}
         setOpenImageModal={setOpenImageModal}
-      />
+      /> */}
     </>
   );
 }
@@ -359,32 +362,35 @@ const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: Lexi
   ];
   return (
     <div className="text-format-menu">
-      <button className={`toolbar-item increment-decrement-btn `} type="button"
+      <button className={`toolbar-item `} type="button"
         disabled={selectionFontSize !== '' &&
           Number(selectionFontSize.slice(0, -2)) >= MAX_ALLOWED_FONT_SIZE
         }
         onClick={() => updateFontSize(editor, UpdateFontSizeType.increment)}>
-        A
-        <Plus size={14} color={"#"} />
+        {/* A
+        <Plus size={14} color={"#"} /> */}
+        <AArrowUp  size={24} strokeWidth={1.4} color={"#000"}/>
       </button>
-      <button className={`toolbar-item  increment-decrement-btn`} type="button"
+      <button className={`toolbar-item  `} type="button"
         disabled={selectionFontSize !== '' &&
           Number(selectionFontSize.slice(0, -2)) >= MAX_ALLOWED_FONT_SIZE
         }
         onClick={() => updateFontSize(editor, UpdateFontSizeType.decrement)}>
-        A
-        <Minus size={14} color={"#000"} />
+        {/* A
+        <Minus size={14} color={"#000"} /> */}
+        <AArrowDown  size={24} strokeWidth={1.4} color={"#000"}/>
       </button>
       {
         commandes.map(({ Icon, name }) => (
           <button key={name} className={`toolbar-item ${selctions[name] ? "active" : ""} `} onClick={() => formatText(editor, name)}>
-            <Icon size={20} strokeWidth={1.8} color={selctions[name] ? "orange" : "#000"} />
+            <Icon  size={24} strokeWidth={1.4} color={selctions[name] ? "orange" : "#000"} />
           </button>
         ))
       }
     </div >
   );
 };
+
 const ImageModal = ({ openImageModal, setOpenImageModal }: ImageModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();

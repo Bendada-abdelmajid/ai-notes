@@ -48,7 +48,8 @@ type Props = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   saveNote: ({ id, title, content, desc }: SaveNoteProps) => void;
   open: boolean;
-  editItem: Note | null
+  editItem: Note | null;
+  
 }
 export default function TextEditor({
   baseColor,

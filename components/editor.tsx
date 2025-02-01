@@ -9,8 +9,8 @@ import { useAppContext } from '../lib/appContext';
 
 
 const Editor = () => {
-    const {open, setOpen, saveNote, editItem, setEditItem}= useAppContext()
-    const {width}= useWindowDimensions()
+    const { open, setOpen, saveNote, editItem, setEditItem, activeFilter, folders } = useAppContext()
+    const { width } = useWindowDimensions()
     const [editorState, setEditorState] = useState<string | null>(null);
     const [plainText, setPlainText] = useState("");
     const [baseColor, setBaseColor] = useState<string>("#f6f6f6")
@@ -18,16 +18,20 @@ const Editor = () => {
         return {
             transform: [
                 {
-                    translateX: withTiming(open ? 0 :width , { duration: 300 })
+                    translateX: withTiming(open ? 0 : width, { duration: 300 })
                 }
             ]
         }
     })
- useEffect(() => {
-    if (open == false) {
-        setEditItem(null)
+    useEffect(() => {
+        if (open == false) {
+            setEditItem(null)
+        }
+    }, [open])
+    const selectFolder =()=>{
+
     }
-  }, [open])
+    
     return (
         <Animated.View style={[styles.container, { backgroundColor: baseColor }, OpenStyle]}>
             {/* <StatusBar style='dark' /> */}
