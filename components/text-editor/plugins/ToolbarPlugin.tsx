@@ -112,8 +112,8 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   const [blockType, setBlockType] = useState("paragraph");
   const [codeLanguage, setCodeLanguage] = useState(getDefaultCodeLanguage());
   const [selectedElementKey, setSelectedElementKey] = useState("");
-  const [openImageModal, setOpenImageModal] = useState(false);
-  const [openTextFormat, setOpenTextFormat] = useState(false);
+  const [openImageModal, setOpenImageModal] = useState(true);
+  const [openTextFormat, setOpenTextFormat] = useState(true);
   const [selectionFontSize, setSelectionFontSize] = useState("15px");
   const updateToolbar = () => {
     try {
@@ -312,20 +312,46 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
             <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} />
           </div>
-          <div className="nav-btns">
+          <button onClick={() => setOpenTextFormat(prev => !prev)} className={`t-button ${openTextFormat ? "clicked" : " "}`} >
+            {/* <div>
+          <span className="t-shape"></span>
+          <span className="t-shape"></span>
+          </div> */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <g >
+
+                <rect id="horizontal"
+                  className="t-shape"
+                  x="20"
+                  y="20"
+                  width="60"
+                  height="2" />
+
+               
+                <rect id="vertical"
+                  className="t-shape"
+                  x="44"
+                  y="20"
+                  width="2"
+                  height="60" />
+              </g>
+
+            </svg>
+          </button>
+          {/* <div className="nav-btns">
             <button className={openTextFormat ? "" : "active"} onClick={()=> setOpenTextFormat(false)}>Insert</button>
             <button  className={openTextFormat ?"active" :""} onClick={()=> setOpenTextFormat(true)}>text</button>
-          </div>
+          </div> */}
 
         </>
 
 
 
       </div>
-      {/* <ImageModal
+      <ImageModal
         openImageModal={openImageModal}
         setOpenImageModal={setOpenImageModal}
-      /> */}
+      />
     </>
   );
 }
@@ -369,7 +395,7 @@ const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: Lexi
         onClick={() => updateFontSize(editor, UpdateFontSizeType.increment)}>
         {/* A
         <Plus size={14} color={"#"} /> */}
-        <AArrowUp  size={24} strokeWidth={1.4} color={"#000"}/>
+        <AArrowUp size={24} strokeWidth={1.4} color={"#000"} />
       </button>
       <button className={`toolbar-item  `} type="button"
         disabled={selectionFontSize !== '' &&
@@ -378,12 +404,12 @@ const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: Lexi
         onClick={() => updateFontSize(editor, UpdateFontSizeType.decrement)}>
         {/* A
         <Minus size={14} color={"#000"} /> */}
-        <AArrowDown  size={24} strokeWidth={1.4} color={"#000"}/>
+        <AArrowDown size={24} strokeWidth={1.4} color={"#000"} />
       </button>
       {
         commandes.map(({ Icon, name }) => (
           <button key={name} className={`toolbar-item ${selctions[name] ? "active" : ""} `} onClick={() => formatText(editor, name)}>
-            <Icon  size={24} strokeWidth={1.4} color={selctions[name] ? "orange" : "#000"} />
+            <Icon size={24} strokeWidth={1.4} color={selctions[name] ? "orange" : "#000"} />
           </button>
         ))
       }
