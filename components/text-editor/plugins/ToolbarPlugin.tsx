@@ -6,8 +6,11 @@ import {
   $insertNodes,
   $isRangeSelection,
   $isTabNode,
+  BLUR_COMMAND,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
+  COMMAND_PRIORITY_LOW,
+  FOCUS_COMMAND,
   FORMAT_ELEMENT_COMMAND,
   FORMAT_TEXT_COMMAND,
   LexicalEditor,
@@ -64,7 +67,7 @@ import {
   Underline,
   Undo,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { MouseEvent, PointerEvent, TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   AddCode,
   AddTable,
@@ -86,6 +89,8 @@ import React from "react";
 import { ImageNode } from "../nodes/image-node";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { INSERT_EXCALIDRAW_COMMAND } from "./ExcalidrawPlugins";
+import { TextInput } from "react-native";
+import AnimatedButton from "../nodes/TextButton";
 
 
 const LOW_PRIORIRTY = 1;
@@ -108,7 +113,7 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>(
     {}
   );
-
+  const [hasFocus, setFocus] = useState(false)
   const [blockType, setBlockType] = useState("paragraph");
   const [codeLanguage, setCodeLanguage] = useState(getDefaultCodeLanguage());
   const [selectedElementKey, setSelectedElementKey] = useState("");
@@ -221,9 +226,84 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
           return false;
         },
         LOW_PRIORIRTY
-      )
+      ),
+      // editor.registerCommand(
+      //   FOCUS_COMMAND,
+      //   () => {
+      //     setFocus(true)
+      //     return false
+      //   },
+      //   LOW_PRIORIRTY
+      // ),
+      // editor.registerCommand(
+      //   BLUR_COMMAND,
+      //   () => {
+      //     setFocus(false)
+      //     return false
+      //   },
+      //   LOW_PRIORIRTY
+      // )
     );
   }, [editor]);
+  const [isVisible, setIsVisible] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isInteractingWithMenu = useRef<boolean>(false);
+  const focusTimeout = useRef<number | null>(null);
+
+  // Track editor focus and menu interactions
+  useEffect(() => {
+    const rootElement = editor.getRootElement();
+    if (!rootElement) return;
+
+    const handleFocus = () => {
+      if (focusTimeout.current !== null) {
+        clearTimeout(focusTimeout.current);
+      }
+      setIsVisible(true);
+    };
+
+    const handleBlur = (e: FocusEvent) => {
+      // Check if blur is moving to menu
+      const relatedTarget = e.relatedTarget as Node | null;
+      isInteractingWithMenu.current = !!relatedTarget && menuRef.current?.contains(relatedTarget) || false;
+
+      focusTimeout.current = window.setTimeout(() => {
+        if (!isInteractingWithMenu.current) {
+          setIsVisible(false);
+        }
+      }, 200);
+    };
+
+    const handlePointerDown = (e: Event) => {
+      const target = e.target as Node | null;
+      isInteractingWithMenu.current = !!target && menuRef.current?.contains(target) || false;
+    };
+
+    rootElement.addEventListener('focus', handleFocus);
+    rootElement.addEventListener('blur', handleBlur as EventListener);
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => {
+      rootElement.removeEventListener('focus', handleFocus);
+      rootElement.removeEventListener('blur', handleBlur as EventListener);
+      document.removeEventListener('pointerdown', handlePointerDown);
+      if (focusTimeout.current !== null) {
+        clearTimeout(focusTimeout.current);
+      }
+    };
+  }, [editor]);
+
+  // Handle menu interactions
+  const handleMenuInteraction = (e: PointerEvent | TouchEvent<HTMLDivElement> | MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Maintain editor focus
+    const rootElement = editor.getRootElement();
+    requestAnimationFrame(() => {
+      rootElement?.focus();
+    });
+  };
   const addExcalidraw = () => {
     editor.dispatchCommand(
       INSERT_EXCALIDRAW_COMMAND,
@@ -256,16 +336,26 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
   useEffect(() => {
     if (open == false) {
+
       save(editor)
     }
   }, [open])
 
+
+  const handleToggleTextFormat = () => {
+    editor.focus()
+    setOpenTextFormat(prev => !prev)
+    // const rootElement = editor.getRootElement();
+    // if (rootElement) {
+    //   rootElement.focus(); // Direct DOM focus
+    // }
+
+  }
   return (
     <>
       <div className="header">
         <button onClick={() => { setOpen(false) }} className="back-btn">
           <ArrowLeft size={20} strokeWidth={1.4} />
-
         </button>
         <div style={{ display: "flex" }}>
           <button >
@@ -283,6 +373,7 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
             <EllipsisVertical size={20} strokeWidth={1.4} />
           </button>
         </div>
+        <hr />
       </div>
       <div className={`edit-tabel-btns ${editeTabel.show ? "show" : ""}`}>
         <button onClick={() => editeTabel.tabel && InsertTableColumn(editor, editeTabel.tabel)}>
@@ -295,7 +386,9 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
         <span />
         <button onClick={() => DeleteTableRow(editor)}>Delete Row</button>
       </div>
-      <div className={`toolbar  ${openTextFormat ? "show-text-format" : ""} `}>
+      <div onPointerDown={handleMenuInteraction}
+        onTouchStart={handleMenuInteraction}
+        onMouseDown={handleMenuInteraction} className={`toolbar ${isVisible ?"active":""}  ${openTextFormat ? "show-text-format" : ""} `}>
 
 
 
@@ -312,36 +405,18 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
             <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} />
           </div>
-          <button onClick={() => setOpenTextFormat(prev => !prev)} className={`t-button ${openTextFormat ? "clicked" : " "}`} >
-            {/* <div>
-          <span className="t-shape"></span>
-          <span className="t-shape"></span>
-          </div> */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-              <g >
 
-                <rect id="horizontal"
-                  className="t-shape"
-                  x="20"
-                  y="20"
-                  width="60"
-                  height="2" />
+          <button onClick={handleToggleTextFormat} className={`t-button ${openTextFormat ? "clicked" : ""}`} >
 
-               
-                <rect id="vertical"
-                  className="t-shape"
-                  x="44"
-                  y="20"
-                  width="2"
-                  height="60" />
-              </g>
+
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+
+              <path className="t-shape" id="x" d="M 7 7 L 17 17 M 17 7 L 7 17" />
+              <path className="t-shape" id="t" d="M 6 6 H 18 M 12 6 V 18" />
 
             </svg>
           </button>
-          {/* <div className="nav-btns">
-            <button className={openTextFormat ? "" : "active"} onClick={()=> setOpenTextFormat(false)}>Insert</button>
-            <button  className={openTextFormat ?"active" :""} onClick={()=> setOpenTextFormat(true)}>text</button>
-          </div> */}
+
 
         </>
 
@@ -435,7 +510,7 @@ const ImageModal = ({ openImageModal, setOpenImageModal }: ImageModalProps) => {
     const src = URL.createObjectURL(file);
     console.log({ file });
     editor.update(() => {
-      const imageNode = new ImageNode(src, "imm");
+      const imageNode = new ImageNode(src, "imm", 500);
       $insertNodes([imageNode]);
     });
     // // editor.update(() => {

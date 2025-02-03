@@ -12,7 +12,7 @@ import { migrateDbIfNeeded } from './lib/db';
 
 SplashScreen.preventAutoHideAsync();
 export default function App() {
-  LogBox.ignoreAllLogs()
+  // LogBox.ignoreAllLogs()
   const [loaded, error] = useFonts({
     'Roboto-ExtraBold': require('./assets/fonts/Roboto-ExtraBold.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),

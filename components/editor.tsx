@@ -13,7 +13,7 @@ const Editor = () => {
     const { width } = useWindowDimensions()
     const [editorState, setEditorState] = useState<string | null>(null);
     const [plainText, setPlainText] = useState("");
-    const [baseColor, setBaseColor] = useState<string>("#f6f6f6")
+    const [baseColor, setBaseColor] = useState<string>("#fff")
     const OpenStyle = useAnimatedStyle(() => {
         return {
             transform: [

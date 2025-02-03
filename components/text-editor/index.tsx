@@ -49,7 +49,7 @@ type Props = {
   saveNote: ({ id, title, content, desc }: SaveNoteProps) => void;
   open: boolean;
   editItem: Note | null;
-  
+
 }
 export default function TextEditor({
   baseColor,
@@ -70,7 +70,23 @@ export default function TextEditor({
   const [openThemes, setOpenThemes] = useState<boolean>(false)
   const editorConfig = useMemo(() => {
     return {
-      // editorState:JSON.parse(editItem?.content || "") ?? null,
+      editorState: (editor:LexicalEditor) => {
+        console.log({editItem})
+        if (editItem?.content) {
+          try {
+            // Parse the stored content and apply it to the editor
+            const parsedState = editor.parseEditorState(editItem.content);
+            console.log({parsedState})
+            editor.setEditorState(parsedState);
+          } catch (error) {
+            console.error("Error parsing editor state:", error);
+          
+          }
+        } else {
+          console.log("empty state:");
+      
+        }
+      },
       namespace: "React.js Demo",
       nodes: [
         ListNode,
@@ -87,10 +103,9 @@ export default function TextEditor({
       theme: ExampleTheme,
     }
 
-  }, [editItem?.content]);
+  }, [editItem]);
   useEffect(() => {
     console.log(editItem)
-
     if (editItem && editItem?.title) {
       setTitle(editItem.title)
     } else {
@@ -100,7 +115,7 @@ export default function TextEditor({
       console.log(JSON.parse(editItem.content))
       setEditorState(JSON.parse(editItem.content))
     } else {
-      setEditorState(null)
+      setEditorState("")
     }
   }, [editItem])
 
@@ -130,6 +145,7 @@ export default function TextEditor({
         });
 
         editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
+        root.clear();
         editor.focus();
         setEditorState("")
         setTitle("");
@@ -163,7 +179,7 @@ export default function TextEditor({
                 className="editor-input"
                 aria-placeholder={placeholder}
                 placeholder={
-                  <div className="">{placeholder}</div>
+                  <div className="editor-placeholder">{placeholder}</div>
                 }
               />
             }
@@ -179,7 +195,7 @@ export default function TextEditor({
             ignoreSelectionChange
           /> */}
           {/* <OnChangePlugin onDebouncedChange={handleEditorChange} debounceTime={2000}/> */}
-          <CustomOnChangePlugin editorState={editorState} setEditorState={setEditorState} />
+          <CustomOnChangePlugin editorState={editItem?.content}  />
           <HistoryPlugin />
           <CheckListPlugin />
           <ListPlugin />

@@ -80,7 +80,7 @@ const FilesModal = ({ isOpen, onClose, selectedIds }: Props) => {
                 </Pressable>
             </View>
 
-            <LayoutAnimationConfig skipEntering key={"jjj"}>
+            <LayoutAnimationConfig skipEntering >
                 {showNewFile ? (
                     <AddFile setShowNewFile={setShowNewFile} />
                 ) : (

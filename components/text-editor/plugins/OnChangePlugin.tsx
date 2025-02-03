@@ -3,34 +3,28 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 
 import { EditorState } from 'lexical'
 import { useCallback, useEffect, useState } from 'react'
+import { Folder } from '../../../lib/types';
 type Props = {
-    setEditorState: React.Dispatch<React.SetStateAction<string | null>>;
-    editorState: string | null
+    editorState:string | null | undefined
 }
-const  CustomOnChangePlugin = ({ editorState, setEditorState }: Props) => {
+const CustomOnChangePlugin = ({ editorState}: Props) => {
     const [editor] = useLexicalComposerContext()
     useEffect(() => {
-        try {
-            if (editorState) {
-             console.log({editorState})
-                const initialEditorState = editor.parseEditorState(editorState)
-                editor.setEditorState(initialEditorState)
-            } 
-        } catch (error) {
-            console.log("error form CustomOnChangePlugin: ", error)
+        if (!editorState) {
+            return; // Skip if editor or editorState is not available
         }
-       
-    }, [editorState, editor])
 
-    const onChange = useCallback(
-        (editorState: EditorState) => {
-            // setEditorState(JSON.stringify(editorState.toJSON()))
-        },
-        [setEditorState]
-    )
+        try {
+            const initialEditorState = editor.parseEditorState(editorState);
+            editor.setEditorState(initialEditorState);
+        } catch (error) {
+            console.error("Error in CustomOnChangePlugin: ", error);
+            // Optionally, handle the error (e.g., set a fallback state or show a message)
+        }
+    }, [editorState, editor]); // Ensure editor is stable
+
 
     // TODO: add ignoreSelectionChange
-    return <OnChangePlugin onChange={onChange}   ignoreHistoryMergeTagChange
-    ignoreSelectionChange />
+    return null
 }
 export default CustomOnChangePlugin

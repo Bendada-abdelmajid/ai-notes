@@ -67,15 +67,25 @@ const Card: React.FC<CardProps> = ({
     const selected = useMemo(() => selectedIds.includes(item.id), [selectedIds, item.id]);
 
     const handlePress = useCallback(() => {
+        if (showSelected) {
+            setSelectedIds(prev =>
+                prev.includes(item.id)
+                    ? prev.filter(el => el !== item.id)
+                    : [...prev, item.id]
+            );
+        } else {
+            setEditItem(item)
+            setOpen(true)
+        }
+
+    }, [item.id, setSelectedIds, item, showSelected]);
+
+    const handleLongPress = useCallback(() => {
         setSelectedIds(prev =>
             prev.includes(item.id)
                 ? prev.filter(el => el !== item.id)
                 : [...prev, item.id]
         );
-    }, [item.id, setSelectedIds]);
-
-    const handleLongPress = useCallback(() => {
-        setSelectedIds(prev => [...prev, item.id]);
         setShowSelected(true);
 
     }, [item.id, setSelectedIds, setShowSelected]);;
@@ -104,7 +114,7 @@ const Card: React.FC<CardProps> = ({
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 onLongPress={handleLongPress}
-                delayLongPress={100}
+             
                 style={[styles.card, hoverStyle]}
             >
                 <Animated.View style={[animationStyle, styles.contentContainer]}>

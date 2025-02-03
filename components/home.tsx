@@ -30,6 +30,7 @@ import Animated, {
   useAnimatedRef,
   useAnimatedStyle,
   useScrollViewOffset,
+  useSharedValue,
 } from "react-native-reanimated";
 import { useAppContext } from "../lib/appContext";
 import { Folder, Note } from "../lib/types";
@@ -44,7 +45,7 @@ const HEADER_HEIGHT = 60;
 const spacing = 30;
 const AnimatedButton = Animated.createAnimatedComponent(Pressable)
 const Home = (props: Props) => {
-  const { setOpen, notes, deleteNotesByIds, folders , activeFilter, setActiveFilter} = useAppContext();
+  const { setOpen, notes, deleteNotesByIds, folders, activeFilter, setActiveFilter } = useAppContext();
 
   const [activeSearch, setActiveSearch] = useState(false);
   const [showSelected, setShowSelected] = useState(false);
@@ -54,7 +55,7 @@ const Home = (props: Props) => {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollRef);
-  // const data = useMemo(() => search ? notes.filter(el=> el.title?.includes(search)) : activeFilter == -1 ? notes : notes.filter(el => el.folderId == activeFilter), [notes, activeFilter])
+
   const imageAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: interpolate(
@@ -89,7 +90,7 @@ const Home = (props: Props) => {
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
         <View style={styles.header}>
-          <LayoutAnimationConfig skipEntering> {showSelected ? (
+          {showSelected ? (
             <ActionButtons
               selectedIds={selectedIds}
               setSelectedIds={setSelectedIds}
@@ -104,7 +105,7 @@ const Home = (props: Props) => {
               <Animated.View layout={LinearTransition} style={styles.searchBar}>
                 <Search size={18} color={"#fff"} />
                 <TextInput
-                keyboardAppearance="dark"
+                  keyboardAppearance="dark"
                   onPress={() => setActiveSearch(true)}
                   onBlur={() => setActiveSearch(false)}
                   autoFocus={activeSearch}
@@ -115,29 +116,29 @@ const Home = (props: Props) => {
                   placeholder="Search for your Notes"
                 />
               </Animated.View>
-              <LayoutAnimationConfig skipEntering>
-                {activeSearch ? <AnimatedButton  key={"clear-search"} entering={FadeInLeft.duration(300)}
-                  exiting={FadeOutLeft.duration(300)}
-                  onPress={() => setActiveSearch(false)} style={styles.cancelBtn}>
-                  <Text style={{ color: colors.orange, fontSize: 16,  }}>Cancel</Text>
-                </AnimatedButton>
-                  : <AnimatedButton key={"add"} entering={FadeInRight.duration(300)}
-                    exiting={FadeOutRight.duration(300)} onPress={() => setOpen(true)} style={styles.addBtn}>
-                    <Plus size={25} strokeWidth={1.4} color={"#fff"} />
-                  </AnimatedButton>}
-              </LayoutAnimationConfig>
+
+              {activeSearch ? <AnimatedButton key={"clear-search"} entering={FadeInLeft.duration(300)}
+                exiting={FadeOutLeft.duration(300)}
+                onPress={() => setActiveSearch(false)} style={styles.cancelBtn}>
+                <Text style={{ color: colors.orange, fontSize: 16, }}>Cancel</Text>
+              </AnimatedButton>
+                : <AnimatedButton key={"add"} entering={FadeInRight.duration(300)}
+                  exiting={FadeOutRight.duration(300)} onPress={() => setOpen(true)} style={styles.addBtn}>
+                  <Plus size={25} strokeWidth={1.4} color={"#fff"} />
+                </AnimatedButton>}
+
 
             </Animated.View>
           )}
-          </LayoutAnimationConfig>
+
           <View style={styles.borderBottom} />
         </View>
 
-        <Animated.ScrollView layout={LinearTransition}
+        <Animated.ScrollView
           style={{ paddingTop: HEADER_HEIGHT }}
           contentContainerStyle={{
             paddingBottom: HEADER_HEIGHT * 2,
-           paddingTop: activeSearch ? spacing  : 0,
+            paddingTop: activeSearch ? spacing : 0,
           }}
           ref={scrollRef}
           scrollEventThrottle={16}
@@ -151,30 +152,29 @@ const Home = (props: Props) => {
 
 
 
-          <LayoutAnimationConfig skipEntering>
-            {!activeSearch &&
-              <Animated.View key={"filters"} entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)} layout={LinearTransition} style={[styles.filtersCont]}>
-                <FlatList
-                  style={styles.filters}
-                  data={filters}
-                  contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
-                  keyExtractor={(item) => item.id.toString()}
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}
-                  overScrollMode="never"
-                  renderItem={({ item, index }) => (
-                    <FilterBtn
-                      scrollOffset={scrollOffset}
-                      item={item}
-                      index={index}
-                      activeFilter={activeFilter}
-                      setActiveFilter={setActiveFilter}
-                    />
-                  )}
-                />
-                {/* <Animated.View style={[styles.shadow]}/> */}
-              </Animated.View>}
-          </LayoutAnimationConfig>
+          {!activeSearch &&
+            <Animated.View key={"filters"} entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)} style={[styles.filtersCont]}>
+              <FlatList
+                style={styles.filters}
+                data={filters}
+                contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
+                keyExtractor={(item) => item.id.toString()}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                overScrollMode="never"
+                renderItem={({ item, index }) => (
+                  <FilterBtn
+                    scrollOffset={scrollOffset}
+                    item={item}
+                    index={index}
+                    activeFilter={activeFilter}
+                    setActiveFilter={setActiveFilter}
+                  />
+                )}
+              />
+
+            </Animated.View>}
+
 
           <FlatList
             style={{ flex: 1, width: "100%" }}
@@ -253,11 +253,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     fontSize: 16,
   },
-  cancelBtn:{
-    width:100,
+  cancelBtn: {
+    width: 100,
     height: 44,
     alignItems: "flex-end",
-    justifyContent:"center"
+    justifyContent: "center"
   },
   addBtn: {
     width: 44,
