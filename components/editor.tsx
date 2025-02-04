@@ -1,14 +1,15 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { StyleSheet, useWindowDimensions } from 'react-native'
+import React, { useState } from 'react'
 
-import { StatusBar } from 'expo-status-bar'
 import TextEditor from './text-editor'
 import Constants from 'expo-constants';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../lib/appContext';
 
 
+
 const Editor = () => {
+    const [openImageModal, setOpenImageModal] = useState(true);
     const { open, setOpen, saveNote, editItem, setEditItem, activeFilter, folders } = useAppContext()
     const { width } = useWindowDimensions()
     const [editorState, setEditorState] = useState<string | null>(null);
@@ -23,20 +24,14 @@ const Editor = () => {
             ]
         }
     })
-    useEffect(() => {
-        if (open == false) {
-            setEditItem(null)
-        }
-    }, [open])
-    const selectFolder =()=>{
 
-    }
-    
+
     return (
         <Animated.View style={[styles.container, { backgroundColor: baseColor }, OpenStyle]}>
-            {/* <StatusBar style='dark' /> */}
 
-            <TextEditor open={open} editItem={editItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
+            <TextEditor dom={{
+                scrollEnabled: false,
+            }} setOpenImageModal={setOpenImageModal} open={open} editItem={editItem} setEditItem={setEditItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
 
         </Animated.View>
     )

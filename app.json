@@ -7,7 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -17,16 +16,14 @@
       "supportsTablet": true
     },
     "android": {
-      
       "hardwareAccelerated": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      
       "androidNavigationBar": {
-        "backgroundColor": "#000", 
-        "barStyle": "light-content" 
+        "backgroundColor": "#000",
+        "barStyle": "light-content"
       }
     },
     "web": {
@@ -50,6 +47,12 @@
           }
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MyNote needs access to your photos so you can easily add images to your notes."
+        }
+      ],      
       "expo-font"
     ]
   }

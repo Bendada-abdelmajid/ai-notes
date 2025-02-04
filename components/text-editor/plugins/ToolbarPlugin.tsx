@@ -91,6 +91,7 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import { INSERT_EXCALIDRAW_COMMAND } from "./ExcalidrawPlugins";
 import { TextInput } from "react-native";
 import AnimatedButton from "../nodes/TextButton";
+import UploadImage from "./upload-image";
 
 
 const LOW_PRIORIRTY = 1;
@@ -98,9 +99,11 @@ type Props = {
   setOpenThemes: React.Dispatch<React.SetStateAction<boolean>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   save: (editor: LexicalEditor) => void;
-  open: boolean
+  open: boolean;
+  setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>
 }
 export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Props) {
+   const [openImageModal, setOpenImageModal] = useState(true);
   const [editor] = useLexicalComposerContext();
   const [editeTabel, setEditTable] = useState<{
     show: boolean;
@@ -117,7 +120,7 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   const [blockType, setBlockType] = useState("paragraph");
   const [codeLanguage, setCodeLanguage] = useState(getDefaultCodeLanguage());
   const [selectedElementKey, setSelectedElementKey] = useState("");
-  const [openImageModal, setOpenImageModal] = useState(true);
+
   const [openTextFormat, setOpenTextFormat] = useState(true);
   const [selectionFontSize, setSelectionFontSize] = useState("15px");
   const updateToolbar = () => {
@@ -423,18 +426,20 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
 
       </div>
-      <ImageModal
-        openImageModal={openImageModal}
-        setOpenImageModal={setOpenImageModal}
+      <UploadImage
+        isOpen={openImageModal}
+        setOpen={setOpenImageModal}
+        editor={editor}
       />
+     
     </>
   );
 }
 
-type ImageModalProps = {
-  setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
-  openImageModal: boolean;
-};
+// type ImageModalProps = {
+//   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
+//   openImageModal: boolean;
+// };
 const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: LexicalEditor, selctions: { [id: string]: boolean }, selectionFontSize: string }) => {
 
   const commandes = [
@@ -492,60 +497,60 @@ const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: Lexi
   );
 };
 
-const ImageModal = ({ openImageModal, setOpenImageModal }: ImageModalProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<File>();
-  const close = () => {
-    setOpenImageModal(false);
-  };
-  const [editor] = useLexicalComposerContext();
-  // const insertImage = (editor: LexicalEditor, src: string, alt: string): void => {
-  //   editor.update(() => {
-  //     const imageNode = new ImageNode(src, alt);
-  //     editor.insertNode(imageNode);
-  //   });
-  // };
-  const onAddImage = (file: File) => {
-    if (!file) return;
-    const src = URL.createObjectURL(file);
-    console.log({ file });
-    editor.update(() => {
-      const imageNode = new ImageNode(src, "imm", 500);
-      $insertNodes([imageNode]);
-    });
-    // // editor.update(() => {
-    // //   console.log("hi")
-    //   const node = $createImageNode({ src, altText: "Dummy text" });
-    //   console.log({node})
-    //   $insertNodes([node]);
-    // });
-    // setFile(undefined);
+// const ImageModal = ({ openImageModal, setOpenImageModal }: ImageModalProps) => {
+//   const inputRef = useRef<HTMLInputElement>(null);
+//   const [file, setFile] = useState<File>();
+//   const close = () => {
+//     setOpenImageModal(false);
+//   };
+//   const [editor] = useLexicalComposerContext();
+//   // const insertImage = (editor: LexicalEditor, src: string, alt: string): void => {
+//   //   editor.update(() => {
+//   //     const imageNode = new ImageNode(src, alt);
+//   //     editor.insertNode(imageNode);
+//   //   });
+//   // };
+//   const onAddImage = (file: File) => {
+//     if (!file) return;
+//     const src = URL.createObjectURL(file);
+//     console.log({ file });
+//     editor.update(() => {
+//       const imageNode = new ImageNode(src, "imm", 500);
+//       $insertNodes([imageNode]);
+//     });
+//     // // editor.update(() => {
+//     // //   console.log("hi")
+//     //   const node = $createImageNode({ src, altText: "Dummy text" });
+//     //   console.log({node})
+//     //   $insertNodes([node]);
+//     // });
+//     // setFile(undefined);
 
-    close();
-  };
-  return (
-    <div className={`image-modal-cont ${openImageModal ? "open" : ""}`}>
-      <div className="overlay" onClick={close} />
-      <div className="image-modal">
-        <button>Camera</button>
-        <button onClick={() => inputRef?.current?.click()}>Gallery</button>
-        <input
-          ref={inputRef}
-          accept="image/*"
-          onChange={(e) => {
-            console.log("files:", e.target.files[0]);
-            const file = e.target.files?.[0];
-            if (file) {
-              onAddImage(file);
-            }
-            // e.target.files = null;
-          }}
-          type="file"
-        />
-        <button className="cancel" onClick={close}>
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-};
+//     close();
+//   };
+//   return (
+//     <div className={`image-modal-cont ${openImageModal ? "open" : ""}`}>
+//       <div className="overlay" onClick={close} />
+//       <div className="image-modal">
+//         <button>Camera</button>
+//         <button onClick={() => inputRef?.current?.click()}>Gallery</button>
+//         <input
+//           ref={inputRef}
+//           accept="image/*"
+//           onChange={(e) => {
+//             console.log("files:", e.target.files[0]);
+//             const file = e.target.files?.[0];
+//             if (file) {
+//               onAddImage(file);
+//             }
+//             // e.target.files = null;
+//           }}
+//           type="file"
+//         />
+//         <button className="cancel" onClick={close}>
+//           Cancel
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };

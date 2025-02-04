@@ -49,7 +49,8 @@ type Props = {
   saveNote: ({ id, title, content, desc }: SaveNoteProps) => void;
   open: boolean;
   editItem: Note | null;
-
+  setEditItem: React.Dispatch<React.SetStateAction<Note | null>>
+  setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 export default function TextEditor({
   baseColor,
@@ -58,7 +59,9 @@ export default function TextEditor({
   setOpen,
   saveNote,
   open,
-  editItem
+  editItem,
+  setEditItem,
+  setOpenImageModal
 }: Props) {
   const disableContextMenu = (event: { preventDefault: () => void; }) => {
     event.preventDefault(); // Prevents the default context menu
@@ -70,21 +73,21 @@ export default function TextEditor({
   const [openThemes, setOpenThemes] = useState<boolean>(false)
   const editorConfig = useMemo(() => {
     return {
-      editorState: (editor:LexicalEditor) => {
-        console.log({editItem})
+      editorState: (editor: LexicalEditor) => {
+        console.log({ editItem })
         if (editItem?.content) {
           try {
             // Parse the stored content and apply it to the editor
             const parsedState = editor.parseEditorState(editItem.content);
-            console.log({parsedState})
+            console.log({ parsedState })
             editor.setEditorState(parsedState);
           } catch (error) {
             console.error("Error parsing editor state:", error);
-          
+
           }
         } else {
           console.log("empty state:");
-      
+
         }
       },
       namespace: "React.js Demo",
@@ -147,6 +150,7 @@ export default function TextEditor({
         editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
         root.clear();
         editor.focus();
+        setEditItem(null)
         setEditorState("")
         setTitle("");
 
@@ -195,7 +199,7 @@ export default function TextEditor({
             ignoreSelectionChange
           /> */}
           {/* <OnChangePlugin onDebouncedChange={handleEditorChange} debounceTime={2000}/> */}
-          <CustomOnChangePlugin editorState={editItem?.content}  />
+          <CustomOnChangePlugin editorState={editItem?.content} />
           <HistoryPlugin />
           <CheckListPlugin />
           <ListPlugin />
@@ -206,7 +210,7 @@ export default function TextEditor({
         </div>
 
 
-        <ToolbarPlugin save={save} open={open} setOpenThemes={setOpenThemes} setOpen={setOpen} />
+        <ToolbarPlugin setOpenImageModal={setOpenImageModal} save={save} open={open} setOpenThemes={setOpenThemes} setOpen={setOpen} />
       </LexicalComposer>
       {/* <Thems baseColor={baseColor} setBaseColor={setBaseColor} openThemes={openThemes} setOpenThemes={setOpenThemes} /> */}
 

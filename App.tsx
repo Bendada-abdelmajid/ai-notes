@@ -10,6 +10,7 @@ import { AppProvider } from './lib/appContext';
 import { SQLiteProvider } from 'expo-sqlite';
 import { migrateDbIfNeeded } from './lib/db';
 
+
 SplashScreen.preventAutoHideAsync();
 export default function App() {
   // LogBox.ignoreAllLogs()
@@ -31,13 +32,14 @@ export default function App() {
   }
   return (
     <SQLiteProvider databaseName="notes.db" onInit={migrateDbIfNeeded}>
-      <AppProvider>
-        <View style={styles.container}>
-          <Home />
-          <Editor />
-        </View>
-      </AppProvider>
-    </SQLiteProvider>
+    //   <AppProvider>
+    //     <View style={styles.container}>
+    //       <Home />
+    //       <Editor />
+    //     </View>
+    //   </AppProvider>
+    // </SQLiteProvider>
+  
   );
 }
 
