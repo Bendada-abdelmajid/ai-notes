@@ -33,6 +33,7 @@ import { Note, SaveNoteProps } from "../../lib/types";
 import { $canShowPlaceholderCurry } from "@lexical/text";
 import CustomOnChangePlugin from "./plugins/OnChangePlugin";
 import { resetEditor } from "lexical/LexicalEditor";
+import { FloatingMenu } from "./plugins/FloatingMenu";
 
 
 
@@ -177,6 +178,7 @@ export default function TextEditor({
 
 
         <div className="editor-inner">
+    
           <RichTextPlugin
             contentEditable={
               <ContentEditable

@@ -45,6 +45,7 @@ import {
   AlignRight,
   ArrowLeft,
   Bold,
+  Camera,
   ChevronLeft,
   Code,
   EllipsisVertical,
@@ -56,6 +57,7 @@ import {
   Minus,
   Palette,
   Pen,
+  Pencil,
   Plus,
   Redo,
   SquareCheck,
@@ -67,7 +69,7 @@ import {
   Underline,
   Undo,
 } from "lucide-react";
-import { MouseEvent, PointerEvent, TouchEvent, useCallback, useEffect, useRef, useState } from "react";
+import { MouseEvent, PointerEvent, TouchEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AddCode,
   AddTable,
@@ -103,7 +105,8 @@ type Props = {
   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>
 }
 export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Props) {
-   const [openImageModal, setOpenImageModal] = useState(true);
+  const [openImageModal, setOpenImageModal] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [editor] = useLexicalComposerContext();
   const [editeTabel, setEditTable] = useState<{
     show: boolean;
@@ -121,7 +124,7 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   const [codeLanguage, setCodeLanguage] = useState(getDefaultCodeLanguage());
   const [selectedElementKey, setSelectedElementKey] = useState("");
 
-  const [openTextFormat, setOpenTextFormat] = useState(true);
+  const [openTextFormat, setOpenTextFormat] = useState(false);
   const [selectionFontSize, setSelectionFontSize] = useState("15px");
   const updateToolbar = () => {
     try {
@@ -315,6 +318,8 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
   }
   const Insertcommandes = [
+    { name: "draw", Icon: Pencil, onClick: addExcalidraw },
+    { name: "image", Icon: Camera, onClick: () => setOpenImageModal(true) },
     {
       name: "checkList",
       Icon: SquareCheck,
@@ -330,10 +335,10 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
       Icon: ListOrdered,
       onClick: () => formatNumberedList(editor, blockType),
     },
-    { name: "image", Icon: Image, onClick: () => setOpenImageModal(true) },
-    { name: "draw", Icon: Pen, onClick: addExcalidraw },
+
     { name: "table", Icon: Table, onClick: () => AddTable(editor) },
     { name: "code", Icon: Code, onClick: () => AddCode(editor) },
+
 
   ];
 
@@ -348,12 +353,41 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   const handleToggleTextFormat = () => {
     editor.focus()
     setOpenTextFormat(prev => !prev)
-    // const rootElement = editor.getRootElement();
-    // if (rootElement) {
-    //   rootElement.focus(); // Direct DOM focus
-    // }
-
+    setShowMore(false)
   }
+
+  
+  const textCommandes = [
+    {
+      name: "highlight",
+      Icon: Highlighter,
+    },
+    {
+      name: "bold",
+      Icon: Bold,
+    },
+    {
+      name: "italic",
+      Icon: Italic,
+    },
+    {
+      name: "underline",
+      Icon: Underline,
+    },
+    { name: "strikethrough", Icon: Strikethrough },
+    { name: "superscript", Icon: Superscript },
+    { name: "subscript", Icon: Subscript },
+    { name: "left", Icon: AlignLeft },
+    { name: "center", Icon: AlignCenter },
+    { name: "right", Icon: AlignRight },
+  ];
+  const commandes = useMemo(() => {
+    if(openTextFormat ){
+      return [...textCommandes]
+    } else {
+      return showMore ? Insertcommandes :  Insertcommandes.slice(0,2)
+    }
+  }, [openTextFormat, showMore])
   return (
     <>
       <div className="header">
@@ -389,36 +423,32 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
         <span />
         <button onClick={() => DeleteTableRow(editor)}>Delete Row</button>
       </div>
-      <div onPointerDown={handleMenuInteraction}
-        onTouchStart={handleMenuInteraction}
-        onMouseDown={handleMenuInteraction} className={`toolbar ${isVisible ?"active":""}  ${openTextFormat ? "show-text-format" : ""} `}>
-
-
-
+      <div className={`toolbar ${openTextFormat ? "show-text-format expand" : ""} ${showMore ? "show-more expand" : ""} `}>
         <>
           <div className={`menu`}>
-            <div className="format-menu">
-              {Insertcommandes.map(({ Icon, name, onClick }) => (
-                <button key={name} className="toolbar-item" onClick={onClick}>
-                  <Icon size={24} strokeWidth={1.4} />
+
+            <div className="format-menu" >
+              <button  onClick={()=> setShowMore(prev=> !prev)} className={`toolbar-item more`} >
+                <Plus size={30} strokeWidth={1.5} color="#fff" />
+              </button>
+              {commandes.map(({ Icon, name }) => (
+                <button key={name} className="toolbar-item">
+                  <Icon size={24} strokeWidth={1.5} />
                 </button>
+
               ))}
+              <button onClick={handleToggleTextFormat} className={`t-button toolbar-item ${openTextFormat ? "clicked" : ""}`} >
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path className="t-shape" id="x" d="M 7 7 L 17 17 M 17 7 L 7 17" />
+                  <path className="t-shape" id="t" d="M 6 6 H 18 M 12 6 V 18" />
+                </svg>
+              </button>
             </div>
 
 
-            <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} />
+            {/* <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} /> */}
           </div>
 
-          <button onClick={handleToggleTextFormat} className={`t-button ${openTextFormat ? "clicked" : ""}`} >
-
-
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-
-              <path className="t-shape" id="x" d="M 7 7 L 17 17 M 17 7 L 7 17" />
-              <path className="t-shape" id="t" d="M 6 6 H 18 M 12 6 V 18" />
-
-            </svg>
-          </button>
 
 
         </>
@@ -431,7 +461,7 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
         setOpen={setOpenImageModal}
         editor={editor}
       />
-     
+
     </>
   );
 }
