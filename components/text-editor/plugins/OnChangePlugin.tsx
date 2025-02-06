@@ -1,13 +1,13 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 
-import { EditorState } from 'lexical'
+import { CLEAR_HISTORY_COMMAND, EditorState } from 'lexical'
 import { useCallback, useEffect, useState } from 'react'
 import { Folder } from '../../../lib/types';
 type Props = {
-    editorState:string | null | undefined
+    editorState: string | null | undefined
 }
-const CustomOnChangePlugin = ({ editorState}: Props) => {
+const CustomOnChangePlugin = ({ editorState }: Props) => {
     const [editor] = useLexicalComposerContext()
     useEffect(() => {
         if (!editorState) {
@@ -17,6 +17,7 @@ const CustomOnChangePlugin = ({ editorState}: Props) => {
         try {
             const initialEditorState = editor.parseEditorState(editorState);
             editor.setEditorState(initialEditorState);
+            editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
         } catch (error) {
             console.error("Error in CustomOnChangePlugin: ", error);
             // Optionally, handle the error (e.g., set a fallback state or show a message)

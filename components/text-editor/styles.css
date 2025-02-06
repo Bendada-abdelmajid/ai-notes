@@ -102,10 +102,10 @@ body {
 
 .editor-container {
   width: 100%;
-  padding: 80px 15px;
+  padding: 65px 15px;
   color: var(--scondary);
   position: relative;
-  line-height: 20px;
+  line-height: 1.6;
 
   font-weight: 400;
   text-align: left;
@@ -345,12 +345,7 @@ pre::-webkit-scrollbar-thumb {
   gap: 10px;
   z-index: 20;
 }
-.header hr {
-  position: absolute;
-  bottom: 0;
-  left: 10;
-  right: 10;
-}
+
 .header button {
   width: 35px;
   height: 35px;
@@ -363,12 +358,7 @@ pre::-webkit-scrollbar-thumb {
   width: 70px;
   justify-content: flex-start;
 }
-.header button.back-btn span {
-  display: block;
-  font-size: 14px;
-  opacity: 0.6;
-  margin-top: -1px;
-}
+
 .toolbar {
   --btn-w: 55px;
   /* --w: calc(100vw - 160px); */
@@ -378,15 +368,14 @@ pre::-webkit-scrollbar-thumb {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-
   display: flex;
   background: #b9b9b91d;
+  /* background: #fff; */
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   backdrop-filter: blur(100px);
-
-  gap: 4px;
   border-radius: 40px;
-  justify-content: space-between;
   z-index: 20;
+  /* height: 63px; */
   overflow: hidden;
   transition: max-width 0.2s ease;
 }
@@ -398,16 +387,17 @@ pre::-webkit-scrollbar-thumb {
 } */
 
 .toolbar .menu {
-  padding: 4px;
+  padding: 3px;
   display: flex;
   width: 100%;
+  transition: 0.4s ease;
+  overflow: scroll hidden;
+  position: relative;
+  gap: 4px;
 }
 .t-button {
-
   position: relative;
-
   transition: .2s ease;
-
 }
 .toolbar.show-text-format .toolbar-item.t-button  {
   background-color: #000;
@@ -438,19 +428,6 @@ pre::-webkit-scrollbar-thumb {
   opacity: 1;
 }
 
-.format-menu,
-.text-format-menu {
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  min-width: var(--w);
-  max-width: var(--w);
-  transition: 0.4s ease;
-  overflow-x: scroll;
-  position: relative;
-}
-
-
 .date {
   opacity: 0.6;
   font-size: 14px;
@@ -471,6 +448,7 @@ pre::-webkit-scrollbar-thumb {
   background: #000;
   position: sticky;
   left: 0;
+  top: 0;
   transition: .3s  ease;
 }
 .toolbar.show-more .toolbar-item.more {
@@ -842,7 +820,30 @@ img {
   display: block;
   border-radius: 10px;
 }
+.table-menu{
+  background: #fff;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  display: flex;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 15px;
+  z-index: 20;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+.table-menu>button{
+  border-radius: 10px;
+  padding: 10px;
+  white-space: nowrap;
+  background-color: #f1f1f1;
+  transition: .3s ease;
+}
+.table-menu>button:active{
 
+  background-color: #eee;
+}
 .image-edit-btns {
   /* border: 1px solid #ccc; */
   background: #fff;
@@ -900,13 +901,7 @@ span.editor-image {
   user-select: none;
 }
 
-.editor-image img.focused.draggable {
-  cursor: grab;
-}
 
-.editor-image img.focused.draggable:active {
-  cursor: grabbing;
-}
 
 .editor-image .image-caption-container .tree-view-output {
   margin: 0;

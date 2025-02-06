@@ -6,7 +6,7 @@ import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { createEmptyHistoryState, HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { ClearEditorPlugin } from "@lexical/react/LexicalClearEditorPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
@@ -21,7 +21,7 @@ import ExampleTheme from "./ExampleTheme";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import { ImageNode } from "./nodes/image-node";
 
-import { $getRoot, CLEAR_EDITOR_COMMAND, EditorState, LexicalEditor, LexicalNode } from "lexical";
+import { $getRoot, CLEAR_EDITOR_COMMAND, CLEAR_HISTORY_COMMAND, EditorState, LexicalEditor, LexicalNode } from "lexical";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import ExcalidrawPlugin from "./plugins/ExcalidrawPlugins";
@@ -32,8 +32,9 @@ import { Note, SaveNoteProps } from "../../lib/types";
 
 import { $canShowPlaceholderCurry } from "@lexical/text";
 import CustomOnChangePlugin from "./plugins/OnChangePlugin";
-import { resetEditor } from "lexical/LexicalEditor";
-import { FloatingMenu } from "./plugins/FloatingMenu";
+
+import Header from "./plugins/header";
+import TabelMenu from "./plugins/tabel-menu";
 
 
 
@@ -149,7 +150,10 @@ export default function TextEditor({
         });
 
         editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
+        editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+        
         root.clear();
+     
         editor.focus();
         setEditItem(null)
         setEditorState("")
@@ -167,6 +171,7 @@ export default function TextEditor({
 
   return (
     <div onContextMenu={disableContextMenu} style={{ "--primary": baseColor, "--scondary": textColor } as React.CSSProperties & { "--primary"?: string }} className="editor-container">
+      <hr style={{ marginBottom: "20px" }} />
       <div className="space-between">
         <p className="date">16/11/2024</p>
         <button>#work</button>
@@ -175,10 +180,8 @@ export default function TextEditor({
 
       {/* <span role="textbox" contentEditable  onInput={handleTitle} onChange={handleTitle} value={title} className="title-input" placeholder="Title"></span> */}
       <LexicalComposer initialConfig={editorConfig}>
-
-
         <div className="editor-inner">
-    
+
           <RichTextPlugin
             contentEditable={
               <ContentEditable
@@ -210,8 +213,8 @@ export default function TextEditor({
           <ClearEditorPlugin />
 
         </div>
-
-
+        <Header setOpen={setOpen} />
+        <TabelMenu />
         <ToolbarPlugin setOpenImageModal={setOpenImageModal} save={save} open={open} setOpenThemes={setOpenThemes} setOpen={setOpen} />
       </LexicalComposer>
       {/* <Thems baseColor={baseColor} setBaseColor={setBaseColor} openThemes={openThemes} setOpenThemes={setOpenThemes} /> */}

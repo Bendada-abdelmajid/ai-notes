@@ -31,6 +31,7 @@ const Editor = () => {
 
             <TextEditor dom={{
                 scrollEnabled: false,
+                overScrollMode: "never",
             }} setOpenImageModal={setOpenImageModal} open={open} editItem={editItem} setEditItem={setEditItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
 
         </Animated.View>

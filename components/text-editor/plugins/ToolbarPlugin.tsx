@@ -1,41 +1,26 @@
-import "../styles.css";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
-  $getNearestNodeFromDOMNode,
   $getSelection,
-  $insertNodes,
+
   $isRangeSelection,
-  $isTabNode,
-  BLUR_COMMAND,
-  CAN_REDO_COMMAND,
-  CAN_UNDO_COMMAND,
-  COMMAND_PRIORITY_LOW,
-  FOCUS_COMMAND,
-  FORMAT_ELEMENT_COMMAND,
-  FORMAT_TEXT_COMMAND,
   LexicalEditor,
-  REDO_COMMAND,
+
   SELECTION_CHANGE_COMMAND,
-  UNDO_COMMAND,
+
 } from "lexical";
 import {
-  HeadingTagType,
-  $createHeadingNode,
+
   $isHeadingNode,
 } from "@lexical/rich-text";
 import { mergeRegister, $getNearestNodeOfType } from "@lexical/utils";
+
 import {
   $isCodeNode,
   getDefaultCodeLanguage,
   registerCodeHighlighting,
 } from "@lexical/code";
 import { $isListNode, ListNode } from "@lexical/list";
-import {
-  $isTableRowNode,
-  $isTableCellNode,
-  $isTableNode,
-  TableNode,
-} from "@lexical/table";
+
 
 import {
   AArrowDown,
@@ -43,44 +28,35 @@ import {
   AlignCenter,
   AlignLeft,
   AlignRight,
-  ArrowLeft,
   Bold,
   Camera,
-  ChevronLeft,
   Code,
-  EllipsisVertical,
   Highlighter,
-  Image,
   Italic,
   List,
   ListOrdered,
-  Minus,
-  Palette,
-  Pen,
   Pencil,
   Plus,
-  Redo,
   SquareCheck,
   Strikethrough,
   Subscript,
   Superscript,
   Table,
-  Type,
   Underline,
-  Undo,
+
 } from "lucide-react";
-import { MouseEvent, PointerEvent, TouchEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AddCode,
   AddTable,
-  DeleteTableRow,
+
   formatBulletList,
   formatCheckList,
   formatNumberedList,
   formatText,
-  InsertTableColumn,
-  InsertTableRow,
+
   MAX_ALLOWED_FONT_SIZE,
+  MIN_ALLOWED_FONT_SIZE,
   updateFontSize,
   UpdateFontSizeType,
 } from "./utils";
@@ -88,11 +64,8 @@ import {
   $getSelectionStyleValueForProperty
 } from '@lexical/selection';
 import React from "react";
-import { ImageNode } from "../nodes/image-node";
-import { Excalidraw } from "@excalidraw/excalidraw";
+
 import { INSERT_EXCALIDRAW_COMMAND } from "./ExcalidrawPlugins";
-import { TextInput } from "react-native";
-import AnimatedButton from "../nodes/TextButton";
 import UploadImage from "./upload-image";
 
 
@@ -104,37 +77,22 @@ type Props = {
   open: boolean;
   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>
 }
-export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Props) {
+export default function ToolbarPlugin({ save, open }: Props) {
   const [openImageModal, setOpenImageModal] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [editor] = useLexicalComposerContext();
-  const [editeTabel, setEditTable] = useState<{
-    show: boolean;
-    tabel: TableNode | null;
-  }>({ show: false, tabel: null });
-  const [disableMap, setDisableMap] = useState<{ [id: string]: boolean }>({
-    undo: true,
-    redo: true,
-  });
-  const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>(
-    {}
-  );
-  const [hasFocus, setFocus] = useState(false)
+  const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>({});
+  const [isEditable, setIsEditable] = useState(() => editor.isEditable());
   const [blockType, setBlockType] = useState("paragraph");
   const [codeLanguage, setCodeLanguage] = useState(getDefaultCodeLanguage());
   const [selectedElementKey, setSelectedElementKey] = useState("");
-
   const [openTextFormat, setOpenTextFormat] = useState(false);
   const [selectionFontSize, setSelectionFontSize] = useState("15px");
+
   const updateToolbar = () => {
     try {
-
-
       const selection = $getSelection();
-
-
       if ($isRangeSelection(selection)) {
-
         const anchorNode = selection.anchor.getNode();
         if (!anchorNode) return
         const parentBlock = anchorNode.getTopLevelElement();
@@ -160,35 +118,28 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
             : anchorNode.getTopLevelElementOrThrow();
         const elementKey = element.getKey();
 
-        setSelectedElementKey(elementKey);
+        // setSelectedElementKey(elementKey);
         const elementDOM = editor.getElementByKey(elementKey);
         if (!elementDOM) return;
-        if ($isTableCellNode(element.getParent())) {
-          const parentTable = $getNearestNodeOfType(anchorNode, TableNode);
-          setEditTable({
-            show: $isTableCellNode(element.getParent()),
-            tabel: parentTable,
-          });
+
+        if ($isListNode(element)) {
+          const parentList = $getNearestNodeOfType(anchorNode, ListNode);
+
+          const type = parentList
+            ? parentList.getListType()
+            : element.getListType();
+
+          setBlockType(type);
         } else {
-          setEditTable({ show: false, tabel: null });
-          if ($isListNode(element)) {
-            const parentList = $getNearestNodeOfType(anchorNode, ListNode);
-
-            const type = parentList
-              ? parentList.getListType()
-              : element.getListType();
-
-            setBlockType(type);
-          } else {
-            const type = $isHeadingNode(element)
-              ? element.getTag()
-              : element.getType();
-            setBlockType(type);
-            if ($isCodeNode(element)) {
-              setCodeLanguage(element.getLanguage() || getDefaultCodeLanguage());
-            }
-          }
+          const type = $isHeadingNode(element)
+            ? element.getTag()
+            : element.getType();
+          setBlockType(type);
+          // if ($isCodeNode(element)) {
+          //   setCodeLanguage(element.getLanguage() || getDefaultCodeLanguage());
+          // }
         }
+
       }
     } catch (error) {
       console.log("error from updateToolbar: ", error)
@@ -198,6 +149,9 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   useEffect(() => {
     registerCodeHighlighting(editor);
     return mergeRegister(
+      editor.registerEditableListener((editable) => {
+        setIsEditable(editable);
+      }),
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
           updateToolbar();
@@ -211,111 +165,30 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
         },
         LOW_PRIORIRTY
       ),
-      editor.registerCommand(
-        CAN_UNDO_COMMAND,
-        (payload) => {
-          setDisableMap((prevDisableMap) => ({
-            ...prevDisableMap,
-            undo: !payload,
-          }));
-          return false;
-        },
-        LOW_PRIORIRTY
-      ),
-      editor.registerCommand(
-        CAN_REDO_COMMAND,
-        (payload) => {
-          setDisableMap((prevDisableMap) => ({
-            ...prevDisableMap,
-            redo: !payload,
-          }));
-          return false;
-        },
-        LOW_PRIORIRTY
-      ),
-      // editor.registerCommand(
-      //   FOCUS_COMMAND,
-      //   () => {
-      //     setFocus(true)
-      //     return false
-      //   },
-      //   LOW_PRIORIRTY
-      // ),
-      // editor.registerCommand(
-      //   BLUR_COMMAND,
-      //   () => {
-      //     setFocus(false)
-      //     return false
-      //   },
-      //   LOW_PRIORIRTY
-      // )
     );
   }, [editor]);
-  const [isVisible, setIsVisible] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isInteractingWithMenu = useRef<boolean>(false);
-  const focusTimeout = useRef<number | null>(null);
 
-  // Track editor focus and menu interactions
-  useEffect(() => {
-    const rootElement = editor.getRootElement();
-    if (!rootElement) return;
 
-    const handleFocus = () => {
-      if (focusTimeout.current !== null) {
-        clearTimeout(focusTimeout.current);
-      }
-      setIsVisible(true);
-    };
 
-    const handleBlur = (e: FocusEvent) => {
-      // Check if blur is moving to menu
-      const relatedTarget = e.relatedTarget as Node | null;
-      isInteractingWithMenu.current = !!relatedTarget && menuRef.current?.contains(relatedTarget) || false;
-
-      focusTimeout.current = window.setTimeout(() => {
-        if (!isInteractingWithMenu.current) {
-          setIsVisible(false);
-        }
-      }, 200);
-    };
-
-    const handlePointerDown = (e: Event) => {
-      const target = e.target as Node | null;
-      isInteractingWithMenu.current = !!target && menuRef.current?.contains(target) || false;
-    };
-
-    rootElement.addEventListener('focus', handleFocus);
-    rootElement.addEventListener('blur', handleBlur as EventListener);
-    document.addEventListener('pointerdown', handlePointerDown);
-
-    return () => {
-      rootElement.removeEventListener('focus', handleFocus);
-      rootElement.removeEventListener('blur', handleBlur as EventListener);
-      document.removeEventListener('pointerdown', handlePointerDown);
-      if (focusTimeout.current !== null) {
-        clearTimeout(focusTimeout.current);
-      }
-    };
-  }, [editor]);
-
-  // Handle menu interactions
-  const handleMenuInteraction = (e: PointerEvent | TouchEvent<HTMLDivElement> | MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Maintain editor focus
-    const rootElement = editor.getRootElement();
-    requestAnimationFrame(() => {
-      rootElement?.focus();
-    });
-  };
   const addExcalidraw = () => {
     editor.dispatchCommand(
       INSERT_EXCALIDRAW_COMMAND,
       undefined,
     );
 
+  }
+  useEffect(() => {
+    if (open == false) {
+
+      save(editor)
+    }
+  }, [open])
+
+
+  const handleToggleTextFormat = () => {
+    editor.focus()
+    setOpenTextFormat(prev => !prev)
+    setShowMore(false)
   }
   const Insertcommandes = [
     { name: "draw", Icon: Pencil, onClick: addExcalidraw },
@@ -342,118 +215,71 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
 
   ];
 
-  useEffect(() => {
-    if (open == false) {
-
-      save(editor)
-    }
-  }, [open])
 
 
-  const handleToggleTextFormat = () => {
-    editor.focus()
-    setOpenTextFormat(prev => !prev)
-    setShowMore(false)
-  }
 
-  
-  const textCommandes = [
-    {
-      name: "highlight",
-      Icon: Highlighter,
-    },
-    {
-      name: "bold",
-      Icon: Bold,
-    },
-    {
-      name: "italic",
-      Icon: Italic,
-    },
-    {
-      name: "underline",
-      Icon: Underline,
-    },
-    { name: "strikethrough", Icon: Strikethrough },
-    { name: "superscript", Icon: Superscript },
-    { name: "subscript", Icon: Subscript },
-    { name: "left", Icon: AlignLeft },
-    { name: "center", Icon: AlignCenter },
-    { name: "right", Icon: AlignRight },
-  ];
+
   const commandes = useMemo(() => {
-    if(openTextFormat ){
-      return [...textCommandes]
-    } else {
-      return showMore ? Insertcommandes :  Insertcommandes.slice(0,2)
-    }
-  }, [openTextFormat, showMore])
+    const getFontSizeNumber = (fontSize: string) => {
+      const size = Number(fontSize.replace("px", "").trim());
+      return isNaN(size) ? 15 : size;
+    };
+
+    const textCommandes = [
+      {
+        name: "increment-fontSize",
+        Icon: AArrowUp,
+        onClick: () => updateFontSize(editor, UpdateFontSizeType.increment),
+        disabled: getFontSizeNumber(selectionFontSize) >= MAX_ALLOWED_FONT_SIZE,
+      },
+      {
+        name: "decrement-fontSize",
+        Icon: AArrowDown,
+        onClick: () => updateFontSize(editor, UpdateFontSizeType.decrement),
+        disabled: getFontSizeNumber(selectionFontSize) <= MIN_ALLOWED_FONT_SIZE,
+      },
+      { name: "highlight", Icon: Highlighter, onClick: () => formatText(editor, "highlight") },
+      { name: "bold", Icon: Bold, onClick: () => formatText(editor, "bold") },
+      { name: "italic", Icon: Italic, onClick: () => formatText(editor, "italic") },
+      { name: "underline", Icon: Underline, onClick: () => formatText(editor, "underline") },
+      { name: "strikethrough", Icon: Strikethrough, onClick: () => formatText(editor, "strikethrough") },
+      { name: "superscript", Icon: Superscript, onClick: () => formatText(editor, "superscript") },
+      { name: "subscript", Icon: Subscript, onClick: () => formatText(editor, "subscript") },
+      { name: "left", Icon: AlignLeft, onClick: () => formatText(editor, "left") },
+      { name: "center", Icon: AlignCenter, onClick: () => formatText(editor, "center") },
+      { name: "right", Icon: AlignRight, onClick: () => formatText(editor, "right") },
+    ];
+
+    return openTextFormat
+      ? textCommandes
+      : showMore
+        ? Insertcommandes
+        : Insertcommandes.slice(0, 2);
+  }, [openTextFormat, showMore, selectionFontSize]); // ✅ Dependencies added
+
   return (
     <>
-      <div className="header">
-        <button onClick={() => { setOpen(false) }} className="back-btn">
-          <ArrowLeft size={20} strokeWidth={1.4} />
-        </button>
-        <div style={{ display: "flex" }}>
-          <button >
-            <Undo size={20} strokeWidth={1.4} />
+
+      <div style={{ opacity: isEditable ? 1 : .4 }} className={`toolbar ${openTextFormat ? "show-text-format expand" : ""} ${showMore ? "show-more expand" : ""} `}>
+        <div className={`menu`}>
+
+          <button onClick={() => setShowMore(prev => !prev)} className={`toolbar-item more`} >
+            <Plus size={30} strokeWidth={1.5} color="#fff" />
           </button>
-          <button >
-            <Redo size={20} strokeWidth={1.4} />
+          {commandes.map(({ Icon, name, onClick, disabled }) => (
+            <button key={name} className="toolbar-item" disabled={disabled} onClick={onClick}>
+              {disabled ? "hj" : ""}
+              <Icon size={24} strokeWidth={1.5} color={selectionMap[name] ? "orange" : "#000"} />
+            </button>
+
+          ))}
+          <button onClick={handleToggleTextFormat} className={`t-button toolbar-item ${openTextFormat ? "clicked" : ""}`} >
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path className="t-shape" id="x" d="M 7 7 L 17 17 M 17 7 L 7 17" />
+              <path className="t-shape" id="t" d="M 6 6 H 18 M 12 6 V 18" />
+            </svg>
           </button>
         </div>
-        <div style={{ display: "flex" }}>
-          <button onClick={() => setOpenThemes(true)}>
-            <Palette size={20} strokeWidth={1.4} />
-          </button>
-          <button >
-            <EllipsisVertical size={20} strokeWidth={1.4} />
-          </button>
-        </div>
-        <hr />
-      </div>
-      <div className={`edit-tabel-btns ${editeTabel.show ? "show" : ""}`}>
-        <button onClick={() => editeTabel.tabel && InsertTableColumn(editor, editeTabel.tabel)}>
-          Add Columne
-        </button>
-        <span />
-        <button onClick={() => editeTabel.tabel && InsertTableRow(editor, editeTabel.tabel)}>
-          Add Row
-        </button>
-        <span />
-        <button onClick={() => DeleteTableRow(editor)}>Delete Row</button>
-      </div>
-      <div className={`toolbar ${openTextFormat ? "show-text-format expand" : ""} ${showMore ? "show-more expand" : ""} `}>
-        <>
-          <div className={`menu`}>
-
-            <div className="format-menu" >
-              <button  onClick={()=> setShowMore(prev=> !prev)} className={`toolbar-item more`} >
-                <Plus size={30} strokeWidth={1.5} color="#fff" />
-              </button>
-              {commandes.map(({ Icon, name }) => (
-                <button key={name} className="toolbar-item">
-                  <Icon size={24} strokeWidth={1.5} />
-                </button>
-
-              ))}
-              <button onClick={handleToggleTextFormat} className={`t-button toolbar-item ${openTextFormat ? "clicked" : ""}`} >
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path className="t-shape" id="x" d="M 7 7 L 17 17 M 17 7 L 7 17" />
-                  <path className="t-shape" id="t" d="M 6 6 H 18 M 12 6 V 18" />
-                </svg>
-              </button>
-            </div>
-
-
-            {/* <TextFormatMenu editor={editor} selctions={selectionMap} selectionFontSize={selectionFontSize} /> */}
-          </div>
-
-
-
-        </>
-
-
 
       </div>
       <UploadImage
@@ -466,121 +292,3 @@ export default function ToolbarPlugin({ setOpenThemes, setOpen, save, open }: Pr
   );
 }
 
-// type ImageModalProps = {
-//   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
-//   openImageModal: boolean;
-// };
-const TextFormatMenu = ({ editor, selctions, selectionFontSize }: { editor: LexicalEditor, selctions: { [id: string]: boolean }, selectionFontSize: string }) => {
-
-  const commandes = [
-    {
-      name: "highlight",
-      Icon: Highlighter,
-    },
-    {
-      name: "bold",
-      Icon: Bold,
-    },
-    {
-      name: "italic",
-      Icon: Italic,
-    },
-    {
-      name: "underline",
-      Icon: Underline,
-    },
-    { name: "strikethrough", Icon: Strikethrough },
-    { name: "superscript", Icon: Superscript },
-    { name: "subscript", Icon: Subscript },
-    { name: "left", Icon: AlignLeft },
-    { name: "center", Icon: AlignCenter },
-    { name: "right", Icon: AlignRight },
-  ];
-  return (
-    <div className="text-format-menu">
-      <button className={`toolbar-item `} type="button"
-        disabled={selectionFontSize !== '' &&
-          Number(selectionFontSize.slice(0, -2)) >= MAX_ALLOWED_FONT_SIZE
-        }
-        onClick={() => updateFontSize(editor, UpdateFontSizeType.increment)}>
-        {/* A
-        <Plus size={14} color={"#"} /> */}
-        <AArrowUp size={24} strokeWidth={1.4} color={"#000"} />
-      </button>
-      <button className={`toolbar-item  `} type="button"
-        disabled={selectionFontSize !== '' &&
-          Number(selectionFontSize.slice(0, -2)) >= MAX_ALLOWED_FONT_SIZE
-        }
-        onClick={() => updateFontSize(editor, UpdateFontSizeType.decrement)}>
-        {/* A
-        <Minus size={14} color={"#000"} /> */}
-        <AArrowDown size={24} strokeWidth={1.4} color={"#000"} />
-      </button>
-      {
-        commandes.map(({ Icon, name }) => (
-          <button key={name} className={`toolbar-item ${selctions[name] ? "active" : ""} `} onClick={() => formatText(editor, name)}>
-            <Icon size={24} strokeWidth={1.4} color={selctions[name] ? "orange" : "#000"} />
-          </button>
-        ))
-      }
-    </div >
-  );
-};
-
-// const ImageModal = ({ openImageModal, setOpenImageModal }: ImageModalProps) => {
-//   const inputRef = useRef<HTMLInputElement>(null);
-//   const [file, setFile] = useState<File>();
-//   const close = () => {
-//     setOpenImageModal(false);
-//   };
-//   const [editor] = useLexicalComposerContext();
-//   // const insertImage = (editor: LexicalEditor, src: string, alt: string): void => {
-//   //   editor.update(() => {
-//   //     const imageNode = new ImageNode(src, alt);
-//   //     editor.insertNode(imageNode);
-//   //   });
-//   // };
-//   const onAddImage = (file: File) => {
-//     if (!file) return;
-//     const src = URL.createObjectURL(file);
-//     console.log({ file });
-//     editor.update(() => {
-//       const imageNode = new ImageNode(src, "imm", 500);
-//       $insertNodes([imageNode]);
-//     });
-//     // // editor.update(() => {
-//     // //   console.log("hi")
-//     //   const node = $createImageNode({ src, altText: "Dummy text" });
-//     //   console.log({node})
-//     //   $insertNodes([node]);
-//     // });
-//     // setFile(undefined);
-
-//     close();
-//   };
-//   return (
-//     <div className={`image-modal-cont ${openImageModal ? "open" : ""}`}>
-//       <div className="overlay" onClick={close} />
-//       <div className="image-modal">
-//         <button>Camera</button>
-//         <button onClick={() => inputRef?.current?.click()}>Gallery</button>
-//         <input
-//           ref={inputRef}
-//           accept="image/*"
-//           onChange={(e) => {
-//             console.log("files:", e.target.files[0]);
-//             const file = e.target.files?.[0];
-//             if (file) {
-//               onAddImage(file);
-//             }
-//             // e.target.files = null;
-//           }}
-//           type="file"
-//         />
-//         <button className="cancel" onClick={close}>
-//           Cancel
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
