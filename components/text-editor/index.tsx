@@ -35,6 +35,7 @@ import CustomOnChangePlugin from "./plugins/OnChangePlugin";
 
 import Header from "./plugins/header";
 import TabelMenu from "./plugins/tabel-menu";
+import { WebViewProps } from "react-native-webview";
 
 
 
@@ -43,8 +44,8 @@ const placeholder = "Enter some rich text...";
 
 
 type Props = {
-  baseColor?: string;
-  setBaseColor: React.Dispatch<React.SetStateAction<string>>;
+  dom:WebViewProps;
+  
   setPlainText: React.Dispatch<React.SetStateAction<string>>;
   setEditorState: React.Dispatch<React.SetStateAction<string | null>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -55,8 +56,7 @@ type Props = {
   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 export default function TextEditor({
-  baseColor,
-  setBaseColor,
+
   setPlainText,
   setOpen,
   saveNote,
@@ -170,7 +170,7 @@ export default function TextEditor({
 
 
   return (
-    <div onContextMenu={disableContextMenu} style={{ "--primary": baseColor, "--scondary": textColor } as React.CSSProperties & { "--primary"?: string }} className="editor-container">
+    <div onContextMenu={disableContextMenu}  className="editor-container">
       <hr style={{ marginBottom: "20px" }} />
       <div className="space-between">
         <p className="date">16/11/2024</p>
