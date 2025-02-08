@@ -1,13 +1,13 @@
-import { StyleSheet, useWindowDimensions } from 'react-native'
+import { Alert, StyleSheet, useWindowDimensions } from 'react-native'
 import React, { useState } from 'react'
 
 import TextEditor from './text-editor'
 import Constants from 'expo-constants';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useAppContext } from '../lib/appContext';
+import * as Sharing from 'expo-sharing';
 
-
-
+import * as FileSystem from 'expo-file-system';
 const Editor = () => {
     const [openImageModal, setOpenImageModal] = useState(true);
     const { open, setOpen, saveNote, editItem, setEditItem, activeFilter, folders } = useAppContext()
@@ -24,6 +24,25 @@ const Editor = () => {
             ]
         }
     })
+    const handleShare = async (image: string) => {
+        // Check if sharing is available
+        const base64Data = image.split(",")[1];
+        const fileUri = `${FileSystem.documentDirectory}screenshot.png`;
+        // const imageurl = await FileSystem.downloadAsync(    image, FileSystem.documentDirectory + 'note.png')
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+        });
+        if (await Sharing.isAvailableAsync()) {
+            try {
+                // Share the PDF
+                await Sharing.shareAsync(fileUri);
+            } catch (error) {
+                console.error('Error sharing PDF:', error);
+            }
+        } else {
+            Alert.alert('Sharing is not available on this platform.');
+        }
+    };
 
 
     return (
@@ -32,7 +51,7 @@ const Editor = () => {
             <TextEditor dom={{
                 scrollEnabled: false,
                 overScrollMode: "never",
-            }} setOpenImageModal={setOpenImageModal} open={open} editItem={editItem} setEditItem={setEditItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} baseColor={baseColor} setBaseColor={setBaseColor} />
+            }} setOpenImageModal={setOpenImageModal} handleShare={handleShare} open={open} editItem={editItem} setEditItem={setEditItem} saveNote={saveNote} setOpen={setOpen} setPlainText={setPlainText} setEditorState={setEditorState} />
 
         </Animated.View>
     )

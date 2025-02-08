@@ -3,12 +3,14 @@ import { CAN_REDO_COMMAND, CAN_UNDO_COMMAND, COMMAND_PRIORITY_CRITICAL, REDO_COM
 import { EllipsisVertical, Redo, Share2, Undo } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { mergeRegister } from "@lexical/utils";
+import html2canvas from "html2canvas";
 type Props = {
-    setOpen: (v: boolean) => void
+    setOpen: (v: boolean) => void;
+    handleShare: (pdfUri: string) => Promise<void>
 };
 
 const LOW_PRIORIRTY = 1;
-const Header = ({ setOpen }: Props) => {
+const Header = ({ setOpen , handleShare}: Props) => {
     const [editor] = useLexicalComposerContext();
     const [disableMap, setDisableMap] = useState<{
         undo: boolean;
@@ -44,6 +46,28 @@ const Header = ({ setOpen }: Props) => {
 
         );
     }, [editor]);
+    const onShare = async () => {
+        const pdfUrl = 'https://beq.ebooksgratuits.com/vents/mirbeau-journal.pdf';
+        const canvas = await html2canvas(document.getElementById("editor") as HTMLElement);
+        const image = canvas.toDataURL("image/png");
+        // console.log({image})
+        handleShare(image);
+        // if (navigator.share) {
+        //   navigator.share({
+        //     title: 'My Note',
+        //     text: 'Check out this note from my app!',
+        //     url: pdfUrl,
+        //   })
+        //   .then(() => console.log('Shared successfully'))
+        //   .catch((error) => console.error('Error sharing:', error));
+        // } else {
+        //   // Fallback for browsers that don't support the Web Share API:
+        //   const link = document.createElement('a');
+        //   link.href = pdfUrl;
+        //   link.download = 'note.pdf';
+        //   link.click();
+        // }
+      };
     return (
         <div className="header">
             <button
@@ -75,7 +99,7 @@ const Header = ({ setOpen }: Props) => {
                 </button>
             </div>
             <div style={{ display: "flex" }}>
-                <button >
+                <button onClick={onShare}>
                     <Share2 size={20} strokeWidth={1.4} />
                 </button>
                 <button>

@@ -36,6 +36,7 @@ import CustomOnChangePlugin from "./plugins/OnChangePlugin";
 import Header from "./plugins/header";
 import TabelMenu from "./plugins/tabel-menu";
 import { WebViewProps } from "react-native-webview";
+import html2canvas from "html2canvas";
 
 
 
@@ -44,8 +45,8 @@ const placeholder = "Enter some rich text...";
 
 
 type Props = {
-  dom:WebViewProps;
-  
+  dom: WebViewProps;
+
   setPlainText: React.Dispatch<React.SetStateAction<string>>;
   setEditorState: React.Dispatch<React.SetStateAction<string | null>>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -54,6 +55,7 @@ type Props = {
   editItem: Note | null;
   setEditItem: React.Dispatch<React.SetStateAction<Note | null>>
   setOpenImageModal: React.Dispatch<React.SetStateAction<boolean>>;
+  handleShare: (pdfUri: string) => Promise<void>
 }
 export default function TextEditor({
 
@@ -63,9 +65,12 @@ export default function TextEditor({
   open,
   editItem,
   setEditItem,
-  setOpenImageModal
+  setOpenImageModal,
+  handleShare
 }: Props) {
+  const captureRef = useRef(null);
   const disableContextMenu = (event: { preventDefault: () => void; }) => {
+
     event.preventDefault(); // Prevents the default context menu
   };
   const [editorState, setEditorState] = useState<string | null>(null);
@@ -151,9 +156,9 @@ export default function TextEditor({
 
         editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
         editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-        
+
         root.clear();
-     
+
         editor.focus();
         setEditItem(null)
         setEditorState("")
@@ -167,10 +172,22 @@ export default function TextEditor({
 
 
 
+  const handleCapture = async () => {
+    if (captureRef.current) {
+      const canvas = await html2canvas(captureRef.current);
+      const image = canvas.toDataURL("image/png");
+      
 
+      // Create a download link
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "screenshot.png";
+      link.click();
+    }
+  };
 
   return (
-    <div onContextMenu={disableContextMenu}  className="editor-container">
+    <div id="editor" onContextMenu={disableContextMenu} className="editor-container">
       <hr style={{ marginBottom: "20px" }} />
       <div className="space-between">
         <p className="date">16/11/2024</p>
@@ -213,7 +230,7 @@ export default function TextEditor({
           <ClearEditorPlugin />
 
         </div>
-        <Header setOpen={setOpen} />
+        <Header setOpen={setOpen} handleShare={handleShare} />
         <TabelMenu />
         <ToolbarPlugin setOpenImageModal={setOpenImageModal} save={save} open={open} setOpenThemes={setOpenThemes} setOpen={setOpen} />
       </LexicalComposer>
